@@ -1,0 +1,27 @@
+## Interface: 120001
+## Title: CozierCamps
+## Notes: Manage vitals, stay alive. Version 0.1 - Beta
+## Author: Zafuzi
+## Version: 0.0.1
+## IconTexture: Interface\AddOns\CozierCamps\assets\fireicon
+## SavedVariables: CozierCampsDB, CozierCampsLoggedFires
+## SavedVariablesPerCharacter: CozierCampsCharDB
+
+Core.lua
+FireDB.lua
+FirstAidTrainers.lua
+CookingTrainers.lua
+Innkeepers.lua
+CampfireDetection.lua
+ActionBars.lua
+MapBlock.lua
+MapOverlay.lua
+Exhaustion.lua
+Anguish.lua
+Hunger.lua
+Thirst.lua
+Temperature.lua
+HPTunnelVision.lua
+Meters.lua
+Settings.lua
+Logger.lua
