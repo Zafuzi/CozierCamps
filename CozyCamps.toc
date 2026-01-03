@@ -1,0 +1,27 @@
+## Interface: 120001
+## Title: CozyCamps
+## Notes: Manage vitals, stay alive. Version 4.0 - Full Survival Experience.
+## Author: Appz & Cyberzerkergaming
+## Version: 4.0.1
+## IconTexture: Interface\AddOns\CozyCamps\assets\fireicon
+## SavedVariables: CozyCampsDB, CozyCampsLoggedFires
+## SavedVariablesPerCharacter: CozyCampsCharDB
+
+Core.lua
+FireDB.lua
+FirstAidTrainers.lua
+CookingTrainers.lua
+Innkeepers.lua
+CampfireDetection.lua
+ActionBars.lua
+MapBlock.lua
+MapOverlay.lua
+Exhaustion.lua
+Anguish.lua
+Hunger.lua
+Thirst.lua
+Temperature.lua
+HPTunnelVision.lua
+Meters.lua
+Settings.lua
+Logger.lua
