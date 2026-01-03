@@ -177,12 +177,12 @@ local TEMP_HOT_DARK = {
 } -- Dark orange (far right)
 
 -- Hunger colors
-local HUNGER_COLOR = {
+local HUNGER_DECAY_COLOR = {
 	r = 0.9,
 	g = 0.6,
 	b = 0.2
 } -- Orange/amber for hunger
-local HUNGER_DECAY_COLOR = {
+local HUNGER_COLOR = {
 	r = 0.1,
 	g = 0.9,
 	b = 0.2
@@ -1222,7 +1222,7 @@ local function SetupConstitutionBarTooltip(meter)
 			local status = anguishPaused and "Resting" or
 					(anguish > 50 and "Wounded" or (anguish > 20 and "Bruised" or "Healthy"))
 			local statusColor = anguish > 50 and { 1, 0.4, 0.4 } or (anguish > 20 and { 1, 0.8, 0.4 } or { 0.4, 1, 0.4 })
-			GameTooltip:AddLine(string.format("  Anguish: %s (%.0f%%)", status, anguishPct), statusColor[1],
+			GameTooltip:AddLine(string.format("  Anguish: %s", status), statusColor[1],
 					statusColor[2], statusColor[3])
 		end
 
@@ -1920,13 +1920,17 @@ local function SetupHungerTooltip(meter)
 		local hasWellFed = CC.HasWellFedBuff and CC.HasWellFedBuff()
 		local checkpoint = CC.GetHungerCheckpoint and CC.GetHungerCheckpoint() or 50
 		local displayMode = CC.GetSetting and CC.GetSetting("meterDisplayMode") or "bar"
+		local activity = CC.GetHungerActivity and CC.GetHungerActivity()
+		local isEating = activity == "Eating"
 		local isVial = displayMode == "vial"
 
 		-- Title with state
 		if isPaused then
 			GameTooltip:SetText("Hunger - Paused", 0.5, 0.7, 1.0)
 		elseif isDecaying then
-			GameTooltip:SetText("Hunger - Eating", 0.2, 1.0, 0.3)
+			GameTooltip:SetText("Hunger - Idle", CC.COLORS.WARNING)
+		elseif isEating then
+			GameTooltip:SetText("Hunger - Eating", CC.COLORS.SUCCESS)
 		elseif hasWellFed then
 			GameTooltip:SetText("Hunger - Well Fed", 0.2, 1.0, 0.3)
 		else
@@ -1936,14 +1940,13 @@ local function SetupHungerTooltip(meter)
 		-- Show value appropriate to display mode
 		if isVial then
 			GameTooltip:AddLine(string.format("Satiation: %.0f%% (Hunger: %.1f%%)", 100 - h, h), 1, 1, 1)
-			GameTooltip:AddLine(string.format("Can eat to: %d%% satiation", 100 - checkpoint), 0.7, 0.7, 0.7)
+			GameTooltip:AddLine(string.format("Can eat to: %d%% satiation", checkpoint), 0.7, 0.7, 0.7)
 		else
 			GameTooltip:AddLine(string.format("Current: %.0f%%", h), 1, 1, 1)
 			GameTooltip:AddLine(string.format("Checkpoint: %d%%", checkpoint), 0.7, 0.7, 0.7)
 		end
 
 		-- Show current activity (both minimal and detailed)
-		local activity = CC.GetHungerActivity and CC.GetHungerActivity()
 		if activity then
 			local actR, actG, actB = 0.7, 0.7, 0.7
 			if activity == "Eating" or activity == "Well Fed" or activity == "Resting (Well Fed)" or activity == "Recovering" then
@@ -1952,7 +1955,7 @@ local function SetupHungerTooltip(meter)
 				actR, actG, actB = 1.0, 0.4, 0.4 -- Red for combat
 			elseif activity == "Running" or activity == "Swimming" then
 				actR, actG, actB = 1.0, 0.8, 0.4 -- Yellow for high drain
-			elseif activity == "Walking" or activity == "Mounted" then
+			elseif activity == "Walking" or activity == "Mounted" or activity == "Idle" then
 				actR, actG, actB = 0.8, 0.8, 0.6 -- Pale yellow for low drain
 			end
 			GameTooltip:AddLine("Activity: " .. activity, actR, actG, actB)
@@ -1990,9 +1993,9 @@ local function SetupHungerTooltip(meter)
 				end
 				GameTooltip:AddLine("  Cooking trainer: fully restores", 0.4, 1, 0.4)
 			else
-				GameTooltip:AddLine("  Open world: can eat to 75%", 0.7, 0.6, 0.5)
+				GameTooltip:AddLine("  Open world: can eat to 25%", 0.7, 0.6, 0.5)
 				GameTooltip:AddLine("  Near fire: can eat to 50%", 0.9, 0.6, 0.3)
-				GameTooltip:AddLine("  Rested area: can eat to 25%", 0.6, 0.8, 0.6)
+				GameTooltip:AddLine("  Rested area: can eat to 75%", 0.6, 0.8, 0.6)
 				GameTooltip:AddLine("  Cooking trainer: resets to 0%", 0.4, 1, 0.4)
 			end
 			GameTooltip:AddLine(" ")
@@ -5887,9 +5890,19 @@ eventFrame:SetScript("OnEvent", function(self, event)
 	end
 end)
 
+DRAW_DELAY = 1 / 90 -- target 90 FPS
 -- OnUpdate for smooth animations
 eventFrame:SetScript("OnUpdate", function(self, elapsed)
-	UpdateMeters(elapsed)
+	if not self.accumulator then
+		self.accumulator = 0
+		UpdateMeters(DRAW_DELAY)
+		return
+	end
+	self.accumulator = self.accumulator + elapsed
+	if self.accumulator >= DRAW_DELAY then
+		self.accumulator = self.accumulator - DRAW_DELAY
+		UpdateMeters(DRAW_DELAY)
+	end
 end)
 
 -- Settings callback

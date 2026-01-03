@@ -279,7 +279,7 @@ local function CheckStaticFireProximity()
 	elseif GetSetting("proximityDebugEnabled", false) and closestIdx > 0 then
 		local closestYards = closestDist / 0.001
 		Debug(string.format("Closest fire #%d (%s) is %.1f yds away (need < %d)",
-			closestIdx, closestSource, closestYards, rangeYards), "proximity")
+				closestIdx, closestSource, closestYards, rangeYards), "proximity")
 	end
 
 	return false, zone
@@ -308,7 +308,7 @@ local COOKING_SKILL_LINE_ID = 185
 local cachedCookingProfession = nil
 
 local function GetCookingProfessionInfo()
--- Return cached if available
+	-- Return cached if available
 	if cachedCookingProfession then
 		return cachedCookingProfession
 	end
@@ -446,7 +446,7 @@ local function HasBasicCampfireBuff()
 end
 
 local function CheckManualRestProximity()
--- Check profession spell focus first (most reliable)
+	-- Check profession spell focus first (most reliable)
 	if GetSetting("detectPlayerCampfires", false) and IsNearCookingFire() then
 		return true
 	end
@@ -499,7 +499,7 @@ local function UpdateFireProximity()
 	local foundAny = false
 
 	if mode == 1 then
-	-- Priority 1: Profession spell focus (database-free, detects ALL cooking fires)
+		-- Priority 1: Profession spell focus (database-free, detects ALL cooking fires)
 		local foundProfession = GetSetting("detectPlayerCampfires", false) and IsNearCookingFire()
 
 		-- Priority 2: Cozy Fire aura (player-placed campfires)
@@ -512,7 +512,7 @@ local function UpdateFireProximity()
 
 		if GetSetting("proximityDebugEnabled", false) then
 			Debug(string.format("Fire detection: profession=%s, aura=%s, static=%s",
-				tostring(foundProfession), tostring(foundPlayer), tostring(foundStatic)), "proximity")
+					tostring(foundProfession), tostring(foundPlayer), tostring(foundStatic)), "proximity")
 		end
 	else
 		if CC.isManualRestActive then
@@ -532,10 +532,10 @@ local function UpdateFireProximity()
 	local safeChanged = (CC.isNearFire ~= newIsNearFire)
 
 	if safeChanged
-	and newIsNearFire
-	and GetSetting("playSoundNearFire", true)
-	and GetSetting("temperatureEnabled", false)
-	and (CC.IsPlayerEligible and CC.IsPlayerEligible())
+			and newIsNearFire
+			and GetSetting("playSoundNearFire", true)
+			and GetSetting("temperatureEnabled", false)
+			and (CC.IsPlayerEligible and CC.IsPlayerEligible())
 	then
 		PlaySoundFile("Interface\\AddOns\\CozierCamps\\assets\\firesound.wav", "SFX")
 	end
@@ -644,10 +644,10 @@ frame:SetScript("OnUpdate", function(self, elapsed)
 		self.hungerAccumulator = 0
 	end
 	self.hungerAccumulator = self.hungerAccumulator + elapsed
-	if self.hungerAccumulator >= 2.5 then
-		self.hungerAccumulator = self.hungerAccumulator - 2.5
+	if self.hungerAccumulator >= HUNGER_UPDATE_DELAY then
+		self.hungerAccumulator = self.hungerAccumulator - HUNGER_UPDATE_DELAY
 		if CC.HandleHungerUpdate then
-			CC.HandleHungerUpdate(2.5)
+			CC.HandleHungerUpdate(HUNGER_UPDATE_DELAY)
 		end
 
 		if CC.HandleThirstUpdate then
@@ -738,7 +738,7 @@ SlashCmdList["CozierCampsFIRE"] = function()
 
 	-- Test profession spell focus
 	if hasSpellFocusAPI then
-	-- First, try to get the profession info
+		-- First, try to get the profession info
 		local profInfo = GetCookingProfessionInfo()
 		if profInfo then
 			print("|cff00FF00Got cooking profession info:|r")
@@ -750,9 +750,9 @@ SlashCmdList["CozierCampsFIRE"] = function()
 			local success, result = pcall(C_TradeSkillUI.IsNearProfessionSpellFocus, profInfo)
 			if success then
 				print(string.format("With profInfo: %s",
-					result and "|cff00FF00NEAR FIRE!|r" or "|cffFF0000not near fire|r"))
+						result and "|cff00FF00NEAR FIRE!|r" or "|cffFF0000not near fire|r"))
 			else
-				print(string.format("|cffFF0000profInfo Error:|r %s", tostring(result):sub(1,60)))
+				print(string.format("|cffFF0000profInfo Error:|r %s", tostring(result):sub(1, 60)))
 			end
 		else
 			print("|cffFF0000Could not get cooking profession info|r")
@@ -763,9 +763,9 @@ SlashCmdList["CozierCampsFIRE"] = function()
 		local success2, result2 = pcall(C_TradeSkillUI.IsNearProfessionSpellFocus, profEnum)
 		if success2 then
 			print(string.format("With profession enum (%d): %s", profEnum,
-				result2 and "|cff00FF00NEAR FIRE!|r" or "|cffFF0000not near fire|r"))
+					result2 and "|cff00FF00NEAR FIRE!|r" or "|cffFF0000not near fire|r"))
 		else
-			print(string.format("|cffFF0000Enum %d Error:|r %s", profEnum, tostring(result2):sub(1,50)))
+			print(string.format("|cffFF0000Enum %d Error:|r %s", profEnum, tostring(result2):sub(1, 50)))
 		end
 
 		-- Try with Enum.Profession if it exists
@@ -773,9 +773,9 @@ SlashCmdList["CozierCampsFIRE"] = function()
 			local success3, result3 = pcall(C_TradeSkillUI.IsNearProfessionSpellFocus, Enum.Profession.Cooking)
 			if success3 then
 				print(string.format("With Enum.Profession.Cooking: %s",
-					result3 and "|cff00FF00NEAR FIRE!|r" or "|cffFF0000not near fire|r"))
+						result3 and "|cff00FF00NEAR FIRE!|r" or "|cffFF0000not near fire|r"))
 			else
-				print(string.format("|cffFF0000Enum.Profession.Cooking Error:|r %s", tostring(result3):sub(1,50)))
+				print(string.format("|cffFF0000Enum.Profession.Cooking Error:|r %s", tostring(result3):sub(1, 50)))
 			end
 		end
 
@@ -823,7 +823,7 @@ SlashCmdList["CozierCampsFIRE"] = function()
 				if success and result then
 					print(string.format("  |cff00FF00%s (%d): NEAR SPELL FOCUS!|r", name, enumVal))
 				elseif success then
-				-- Only print first few "not near" to reduce spam
+					-- Only print first few "not near" to reduce spam
 				elseif not success then
 					print(string.format("  |cffFF0000%s (%d): ERROR|r", name, enumVal))
 				end

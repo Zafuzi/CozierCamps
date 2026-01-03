@@ -52,31 +52,28 @@ end
 ------------------------------------------------------------
 -- Hunger value (0-100)
 ------------------------------------------------------------
-local hunger = 0
+hunger = 0
+HUNGER_UPDATE_DELAY = 2.5 -- in seconds
 
 local MIN_HUNGER = 0
 local MAX_HUNGER = 100
 
 ------------------------------------------------------------
--- Base hunger rates (per second)
--- (your existing values preserved)
+-- Base hunger rates (per tick)
 ------------------------------------------------------------
-local HUNGER_RATE_IDLE = 0.0018 -- unused (idle doesn't accumulate)
-local HUNGER_RATE_WALKING = 0.0072
-local HUNGER_RATE_RUNNING = 0.0108
-local HUNGER_RATE_MOUNTED = 0.0054
-local HUNGER_RATE_COMBAT = 0.0225
-local HUNGER_RATE_SWIMMING = 0.0135
-
--- Recovery rates (per second - with 2.5s tick, these give ~1 per tick base, ~1.5 when rested)
-local EATING_RECOVERY_RATE = 0.4
-local RESTED_EATING_RECOVERY = 0.6
+local HUNGER_EATING_RECOVERY_RATE = (15 / HUNGER_UPDATE_DELAY) -- about 15 seconds
+local HUNGER_RATE_IDLE = 1 / 30 -- about 30 minutes
+local HUNGER_RATE_MOUNTED = 1 / 25
+local HUNGER_RATE_WALKING = 1 / 20
+local HUNGER_RATE_RUNNING = 1 / 15
+local HUNGER_RATE_SWIMMING = 1 / 10
+local HUNGER_RATE_COMBAT = 1 / 5
 
 -- Checkpoints (food cannot reduce below these based on location)
-local CHECKPOINT_WORLD = 75
+local CHECKPOINT_WORLD = 25
 local CHECKPOINT_FIRE = 50
-local CHECKPOINT_RESTED = 25
-local CHECKPOINT_TRAINER = 0
+local CHECKPOINT_RESTED = 75
+local CHECKPOINT_TRAINER = 100
 
 -- Tracking
 local isInDungeon = false
@@ -244,7 +241,7 @@ local EATING_AURAS = {
 }
 
 local function HasWellFedBuff()
--- Fast path for the common one
+	-- Fast path for the common one
 	if AuraByName("Well Fed") then
 		return true
 	end
@@ -266,7 +263,7 @@ local function HasWellFedBuff()
 end
 
 local function IsPlayerEating()
--- Fast paths
+	-- Fast paths
 	for auraName in pairs(EATING_AURAS) do
 		if AuraByName(auraName) then
 			return true
@@ -325,24 +322,26 @@ local function GetBaseHungerRate()
 	elseif state == "walking" then
 		return HUNGER_RATE_WALKING
 	end
-	return 0 -- no accumulation when idle
+	return HUNGER_RATE_IDLE
 end
 
 local function GetHungerMultiplier()
 	local tempFactor = 1.0
 	local exhaustionFactor = 1.0
 
-	if GetSetting("temperatureEnabled", false) then
+	if CC.GetSetting("temperatureEnabled") then
 		local temp = (CC and CC.GetTemperature and CC.GetTemperature()) or 0
 		tempFactor = 1.0 + (math.abs(temp) / 100) * 1.0
+		Debug("TempFactor: " .. (tempFactor))
 	end
 
-	if GetSetting("exhaustionEnabled", true) then
+	if CC.GetSetting("exhaustionEnabled") then
 		local ex = (CC and CC.GetExhaustion and CC.GetExhaustion()) or 0
 		exhaustionFactor = 1.0 + (ex / 100) * 0.5
+		Debug("ExhaustionFactor: " .. (exhaustionFactor))
 	end
 
-	return tempFactor * exhaustionFactor
+	return (tempFactor * exhaustionFactor)
 end
 
 local function GetCurrentCheckpoint()
@@ -381,80 +380,65 @@ end
 -- Main hunger update (called on a slower tick by CampfireDetection)
 ------------------------------------------------------------
 local function UpdateHunger(elapsed)
-	if not ShouldUpdateHunger() then
-		isDecaying = false
-		return
-	end
-
-	local hasWellFed = HasWellFedBuff()
-	local isEating = IsPlayerEating()
-	local isResting = IsResting()
-	local checkpoint = GetCurrentCheckpoint()
-
-	-- Well Fed: stop accumulation; allow normalization if eating; allow slow recovery if resting
-	if hasWellFed then
-		if isEating then
-			local recoveryRate = isResting and RESTED_EATING_RECOVERY or EATING_RECOVERY_RATE
-			if hunger < checkpoint then
-				isDecaying = false
-				hunger = math.min(MAX_HUNGER, math.min(checkpoint, hunger + (recoveryRate * elapsed)))
-				Debug(string.format("Well Fed + Eating: hunger increasing %.1f%% -> checkpoint %d%%", hunger, checkpoint))
-			elseif hunger > checkpoint then
-				isDecaying = true
-				hunger = math.max(MIN_HUNGER, math.max(checkpoint, hunger - (recoveryRate * elapsed)))
-				Debug(string.format("Well Fed + Eating: hunger decreasing %.1f%% -> checkpoint %d%%", hunger, checkpoint))
-			else
-				isDecaying = false
-			end
-			return
-		end
-
-		if hunger > checkpoint and isResting then
-			isDecaying = true
-			local newHunger = hunger - (EATING_RECOVERY_RATE * 0.5 * elapsed); if newHunger < checkpoint then
-				newHunger = checkpoint
-			end; hunger = math.max(MIN_HUNGER, newHunger)
-		else
-			isDecaying = false
-		end
-		return
-	end
-
-	-- Eating (no Well Fed): reduce hunger down to checkpoint
-	if isEating then
-		if hunger > checkpoint then
-			isDecaying = true
-			local recoveryRate = isResting and RESTED_EATING_RECOVERY or EATING_RECOVERY_RATE
-			local newHunger = hunger - (recoveryRate * elapsed)
-			if newHunger < checkpoint then
-				newHunger = checkpoint
-			end
-			hunger = math.max(MIN_HUNGER, newHunger)
-			Debug(string.format("Eating: hunger %.1f%% (checkpoint: %d%%)", hunger, checkpoint))
-		else
-			isDecaying = false
-		end
-		return
-	end
-
 	isDecaying = false
+
+	if not ShouldUpdateHunger() then
+		return
+	end
 
 	-- Paused in dungeon/taxi
 	if isInDungeon or UnitOnTaxi("player") then
 		return
 	end
 
-	local baseRate = GetBaseHungerRate()
-	local multiplier = GetHungerMultiplier()
-	local hungerRate = baseRate * multiplier
+	Debug("hunger: " .. hunger)
 
-	hunger = math.min(MAX_HUNGER, hunger + (hungerRate * elapsed))
+	local hasWellFed = HasWellFedBuff()
+	local isEating = IsPlayerEating()
+	local isResting = IsResting()
+	local checkpoint = GetCurrentCheckpoint()
+	local hungerBaseIncreaseRate = GetBaseHungerRate()
+	local hungerIncreaseMultiplier = GetHungerMultiplier()
 
-	if GetSetting("hungerDebugEnabled", false) then
-		Debug(string.format(
-			"Hunger: %.1f%% | Rate: %.3f/s (base: %.3f x %.2f) | State: %s",
-			hunger, hungerRate, baseRate, multiplier, GetMovementState()
-		))
+	local hungerIncreaseRate = hungerBaseIncreaseRate * hungerIncreaseMultiplier
+	local hungerDecreaseRate = 0
+
+	if isEating then
+		hungerDecreaseRate = HUNGER_EATING_RECOVERY_RATE
+		isDecaying = false
+	end
+
+	hunger = hunger - (hungerDecreaseRate * elapsed)
+
+	-- allow eating, but stop decaying if well fed
+	if not hasWellFed and not isEating then
+		isDecaying = true
+		hunger = hunger + (hungerIncreaseRate * elapsed)
+	end
+
+	if hunger > MAX_HUNGER then
+		hunger = MAX_HUNGER
+	end
+
+	if hunger < MIN_HUNGER then
+		hunger = MIN_HUNGER
+	end
+
+	if 100 - hunger > checkpoint then
+		hunger = 100 - checkpoint
+	end
+
+	if CC.GetSetting("hungerDebugEnabled") then
+		Debug("inc: " .. hungerIncreaseRate)
+		Debug("dec: " .. hungerDecreaseRate)
+		Debug("mul: " .. hungerIncreaseMultiplier)
+		Debug("hunger: " .. hunger)
+		Debug("checkpoint: " .. checkpoint)
+
+		local tts = ((100 - hunger) / 100) / (hungerIncreaseRate - hungerDecreaseRate)
+		local tts_min, tts_sec = math.modf(tts)
+		tts_sec = tts_sec * 60
+		Debug("Starving in: " .. tts_min .. "m " .. math.floor(tts_sec) .. "s")
 	end
 end
 
@@ -462,7 +446,14 @@ end
 -- Update hooks called by CampfireDetection.lua
 ------------------------------------------------------------
 function CC.HandleHungerUpdate(elapsed)
+	if CC.GetSetting("hungerDebugEnabled") then
+		print("--- TOP UPDATING HUNGER ---")
+	end
 	UpdateHunger(elapsed)
+
+	if CC.GetSetting("hungerDebugEnabled") then
+		print("--- END UPDATING HUNGER ---")
+	end
 end
 
 function CC.HandleHungerDarknessUpdate(elapsed)
@@ -517,9 +508,11 @@ function CC.GetHungerActivity()
 	if CC.IsHungerPaused() then
 		return nil
 	end
-	if isDecaying then
+
+	if IsPlayerEating() then
 		return "Eating"
 	end
+
 	if HasWellFedBuff() then
 		return "Well Fed"
 	end
@@ -536,6 +529,11 @@ function CC.GetHungerActivity()
 	elseif state == "walking" then
 		return "Walking"
 	end
+
+	if isDecaying then
+		return "Idle"
+	end
+
 	return nil
 end
 
