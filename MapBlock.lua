@@ -1,8 +1,8 @@
--- CozyCamps - MapBlock.lua
+-- CozierCamps - MapBlock.lua
 -- Standalone map blocking system
 -- Updated for Midnight (Retail 12.0.1 / Interface 120001) compatibility
 
-local CC = CozyCamps
+local CC = CozierCamps
 
 local mapHooksInstalled = false
 local mapBlocked = false
@@ -158,7 +158,7 @@ end
 ------------------------------------------------------------
 -- Event handling
 ------------------------------------------------------------
-local frame = CreateFrame("Frame", "CozyCampsMapBlockFrame")
+local frame = CreateFrame("Frame", "CozierCampsMapBlockFrame")
 frame:RegisterEvent("PLAYER_LOGIN")
 frame:RegisterEvent("PLAYER_LEVEL_UP")
 frame:RegisterEvent("PLAYER_ENTERING_WORLD")
@@ -209,7 +209,7 @@ frame:SetScript("OnEvent", function(_, event)
 end)
 
 ------------------------------------------------------------
--- CozyCamps callbacks (load-order safe)
+-- CozierCamps callbacks (load-order safe)
 ------------------------------------------------------------
 RegisterCallback("FIRE_STATE_CHANGED", function()
 -- If map is open and we lost access, close it.

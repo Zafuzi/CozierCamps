@@ -1,12 +1,12 @@
--- CozyCamps - CampfireDetection.lua
+-- CozierCamps - CampfireDetection.lua
 -- Proximity detection for campfires with Auto Detect and Manual Rest modes
 -- Updated for Midnight (Retail 12.0.1 / 120001) compatibility
 --
 -- FIX: UnitBuff() is nil in this client; replaced UnitBuff-based checks with AuraUtil-based scanning.
 -- The original UnitBuff loops were in HasBasicCampfireBuff and CheckManualRestProximity. :contentReference[oaicite:2]{index=2} :contentReference[oaicite:3]{index=3}
 
-local CC = CozyCamps
-local frame = CreateFrame("Frame", "CozyCampsDetectionFrame", UIParent)
+local CC = CozierCamps
+local frame = CreateFrame("Frame", "CozierCampsDetectionFrame", UIParent)
 
 local CHECK_INTERVAL = 0.5
 local MOVEMENT_CHECK_INTERVAL = 0.1
@@ -49,14 +49,14 @@ local function CreateWarmthOverlay()
 		return warmthOverlay
 	end
 
-	warmthOverlay = CreateFrame("Frame", "CozyCampsWarmthOverlay", UIParent)
+	warmthOverlay = CreateFrame("Frame", "CozierCampsWarmthOverlay", UIParent)
 	warmthOverlay:SetAllPoints(UIParent)
 	warmthOverlay:SetFrameStrata("FULLSCREEN_DIALOG")
 	warmthOverlay:SetFrameLevel(50)
 
 	warmthOverlay.texture = warmthOverlay:CreateTexture(nil, "ARTWORK")
 	warmthOverlay.texture:SetAllPoints()
-	warmthOverlay.texture:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\full-health-overlay.png")
+	warmthOverlay.texture:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\full-health-overlay.png")
 	warmthOverlay.texture:SetBlendMode("ADD")
 	warmthOverlay.texture:SetDesaturated(true)
 	warmthOverlay.texture:SetVertexColor(1.0, 0.5, 0.1, 1.0)
@@ -213,7 +213,7 @@ local function CheckStaticFireProximity()
 	local closestSource = ""
 
 	-- Check main database
-	local zoneFires = CozyCampsFireDB and CozyCampsFireDB[zone]
+	local zoneFires = CozierCampsFireDB and CozierCampsFireDB[zone]
 	if zoneFires then
 		for i, fire in ipairs(zoneFires) do
 			local fx = GetNormalizedCoord(fire.x)
@@ -244,7 +244,7 @@ local function CheckStaticFireProximity()
 	end
 
 	-- Check logged fires database (from /logfire command)
-	local loggedFires = CozyCampsLoggedFires and CozyCampsLoggedFires[zone]
+	local loggedFires = CozierCampsLoggedFires and CozierCampsLoggedFires[zone]
 	if loggedFires then
 		for i, fire in ipairs(loggedFires) do
 			local fx = GetNormalizedCoord(fire.x)
@@ -458,7 +458,7 @@ local function CheckManualRestProximity()
 
 	local rangeYards = GetSetting("campfireRange", 3) or 3
 	local range = YardsToMapUnits(rangeYards)
-	local zoneFires = CozyCampsFireDB and CozyCampsFireDB[zone]
+	local zoneFires = CozierCampsFireDB and CozierCampsFireDB[zone]
 
 	if zoneFires then
 		for _, fire in ipairs(zoneFires) do
@@ -519,7 +519,7 @@ local function UpdateFireProximity()
 			foundAny = CheckManualRestProximity()
 			if not foundAny then
 				SafeDeactivateManualRest()
-				print("|cff88CCFFCozyCamps:|r No campfire nearby. Rest cancelled.")
+				print("|cff88CCFFCozierCamps:|r No campfire nearby. Rest cancelled.")
 			end
 		end
 	end
@@ -537,7 +537,7 @@ local function UpdateFireProximity()
 	and GetSetting("temperatureEnabled", false)
 	and (CC.IsPlayerEligible and CC.IsPlayerEligible())
 	then
-		PlaySoundFile("Interface\\AddOns\\CozyCamps\\assets\\firesound.wav", "SFX")
+		PlaySoundFile("Interface\\AddOns\\CozierCamps\\assets\\firesound.wav", "SFX")
 	end
 
 	if safeChanged then
@@ -547,7 +547,7 @@ local function UpdateFireProximity()
 			local fire = foundAny and "|cff00FF00FIRE|r" or "|cffFF0000NO FIRE|r"
 			local combat = CC.inCombat and "|cffFF0000[COMBAT]|r " or ""
 			local result = CC.isNearFire and "|cff00FF00SAFE|r" or "|cffFF0000LOCKED|r"
-			print(string.format("|cff88CCFFCozyCamps:|r %s%s -> %s", combat, fire, result))
+			print(string.format("|cff88CCFFCozierCamps:|r %s%s -> %s", combat, fire, result))
 		end
 
 		if CC and CC.FireCallbacks then
@@ -600,7 +600,7 @@ local function CheckMovementForManualRest()
 
 	if HasPlayerMoved() then
 		SafeDeactivateManualRest()
-		print("|cff88CCFFCozyCamps:|r You moved. Rest ended.")
+		print("|cff88CCFFCozierCamps:|r You moved. Rest ended.")
 		UpdateFireProximity()
 		if CC.RefreshActionBars then
 			CC.RefreshActionBars()
@@ -725,9 +725,9 @@ end
 
 -- Debug command to test fire detection
 -- Usage: /ccfire
-SLASH_COZYCAMPSFIRE1 = "/ccfire"
-SlashCmdList["COZYCAMPSFIRE"] = function()
-	print("|cff88CCFFCozyCamps Fire Detection Debug:|r")
+SLASH_CozierCampsFIRE1 = "/ccfire"
+SlashCmdList["CozierCampsFIRE"] = function()
+	print("|cff88CCFFCozierCamps Fire Detection Debug:|r")
 	print("----------------------------------------")
 
 	-- Check API availability
@@ -877,9 +877,9 @@ SlashCmdList["COZYCAMPSFIRE"] = function()
 	-- Test static database
 	local playerX, playerY, zone = GetPlayerPosition()
 	if zone then
-		local zoneFires = CozyCampsFireDB and CozyCampsFireDB[zone]
+		local zoneFires = CozierCampsFireDB and CozierCampsFireDB[zone]
 		local fireCount = zoneFires and #zoneFires or 0
-		local loggedFires = CozyCampsLoggedFires and CozyCampsLoggedFires[zone]
+		local loggedFires = CozierCampsLoggedFires and CozierCampsLoggedFires[zone]
 		local loggedCount = loggedFires and #loggedFires or 0
 		print(string.format("Zone: %s | Main DB: %d | Logged: %d", zone, fireCount, loggedCount))
 		print(string.format("Position: %.4f, %.4f", playerX, playerY))

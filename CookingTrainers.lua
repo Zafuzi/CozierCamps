@@ -1,9 +1,9 @@
--- CozyCamps - CookingTrainers.lua
+-- CozierCamps - CookingTrainers.lua
 -- Dynamic detection of Cooking trainers via trainer API and gossip
 -- Works with ALL cooking trainers across all expansions in retail
 -- Updated for Midnight (Retail 12.0.1 / Interface 120001)
 
-local CC = CozyCamps
+local CC = CozierCamps
 
 ------------------------------------------------------------
 -- Safe helpers
@@ -78,17 +78,17 @@ local function GetNpcSubtitle()
 	end
 
 	-- Method 3: Create scanning tooltip as fallback
-	if not CozyCampsCookingScanTooltip then
-		CozyCampsCookingScanTooltip = CreateFrame("GameTooltip", "CozyCampsCookingScanTooltip", nil, "GameTooltipTemplate")
-		CozyCampsCookingScanTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
+	if not CozierCampsCookingScanTooltip then
+		CozierCampsCookingScanTooltip = CreateFrame("GameTooltip", "CozierCampsCookingScanTooltip", nil, "GameTooltipTemplate")
+		CozierCampsCookingScanTooltip:SetOwner(WorldFrame, "ANCHOR_NONE")
 	end
 
-	CozyCampsCookingScanTooltip:ClearLines()
-	CozyCampsCookingScanTooltip:SetUnit("npc")
+	CozierCampsCookingScanTooltip:ClearLines()
+	CozierCampsCookingScanTooltip:SetUnit("npc")
 
-	local numLines = CozyCampsCookingScanTooltip:NumLines()
+	local numLines = CozierCampsCookingScanTooltip:NumLines()
 	if numLines >= 2 then
-		local line2 = _G["CozyCampsCookingScanTooltipTextLeft2"]
+		local line2 = _G["CozierCampsCookingScanTooltipTextLeft2"]
 		if line2 then
 			local text = line2:GetText()
 			if text and text ~= "" then
@@ -232,7 +232,7 @@ cookingFrame:SetScript("OnEvent", function(_, event)
 		if currentHunger and currentHunger > 0 then
 			CC.ResetHungerFromTrainer()
 
-			print("|cff88CCFFCozyCamps:|r " .. targetName ..
+			print("|cff88CCFFCozierCamps:|r " .. targetName ..
 			" shares a hearty meal with you. |cff00FF00Hunger fully satisfied!|r")
 
 			Debug("Hunger reset by Cooking trainer: " .. targetName)
@@ -242,7 +242,7 @@ cookingFrame:SetScript("OnEvent", function(_, event)
 			and GetSetting("hungerEnabled", false)
 			and IsEligible()
 			then
-				PlaySoundFile("Interface\\AddOns\\CozyCamps\\assets\\hungerrelief.wav", "SFX")
+				PlaySoundFile("Interface\\AddOns\\CozierCamps\\assets\\hungerrelief.wav", "SFX")
 			end
 		end
 	end

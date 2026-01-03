@@ -1,11 +1,11 @@
--- CozyCamps - Hunger.lua
+-- CozierCamps - Hunger.lua
 -- Hunger system that scales with temperature and exhaustion
 -- Updated for Midnight (Retail 12.0.1 / Interface 120001) compatibility
 --
 -- FIX: UnitBuff() is nil in this client. Replaced UnitBuff-based Well Fed / Eating detection
 -- in HasWellFedBuff() and IsPlayerEating(). :contentReference[oaicite:1]{index=1}
 
-local CC = CozyCamps
+local CC = CozierCamps
 
 ------------------------------------------------------------
 -- Safe helpers (load-order safe)
@@ -95,7 +95,7 @@ local function CreateHungerDarknessFrame()
 		return hungerDarknessFrame
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsHungerDarkness", UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsHungerDarkness", UIParent)
 	frame:SetAllPoints(UIParent)
 
 	-- Midnight/Retail: ensure it's above the 3D world, but below most UI
@@ -104,7 +104,7 @@ local function CreateHungerDarknessFrame()
 
 	frame.texture = frame:CreateTexture(nil, "ARTWORK")
 	frame.texture:SetAllPoints()
-	frame.texture:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\tunnel_vision_4.png")
+	frame.texture:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\tunnel_vision_4.png")
 	frame.texture:SetBlendMode("BLEND")
 
 	frame:SetAlpha(0)
@@ -542,7 +542,7 @@ end
 ------------------------------------------------------------
 -- Events
 ------------------------------------------------------------
-local eventFrame = CreateFrame("Frame", "CozyCampsHungerFrame")
+local eventFrame = CreateFrame("Frame", "CozierCampsHungerFrame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")

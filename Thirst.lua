@@ -1,6 +1,6 @@
--- CozyCamps - Thirst.lua
+-- CozierCamps - Thirst.lua
 -- Thirst system that scales with temperature and exhaustion
-local CC = CozyCamps
+local CC = CozierCamps
 
 -- Thirst value (0-100)
 local thirst = 0
@@ -54,7 +54,7 @@ local function CreateThirstDarknessFrame()
 		return thirstDarknessFrame
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsThirstDarkness", UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsThirstDarkness", UIParent)
 	frame:SetAllPoints(UIParent)
 	frame:SetFrameStrata("BACKGROUND")
 	frame:SetFrameLevel(0)
@@ -62,7 +62,7 @@ local function CreateThirstDarknessFrame()
 	-- Single texture using tunnel_vision_4.png
 	frame.texture = frame:CreateTexture(nil, "BACKGROUND")
 	frame.texture:SetAllPoints()
-	frame.texture:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\tunnel_vision_4.png")
+	frame.texture:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\tunnel_vision_4.png")
 	frame.texture:SetBlendMode("BLEND")
 	-- Give it a blue tint to distinguish from hunger
 	frame.texture:SetVertexColor(0.7, 0.8, 1.0)
@@ -577,7 +577,7 @@ function CC.GetThirstActivity()
 end
 
 -- Event handling
-local eventFrame = CreateFrame("Frame", "CozyCampsThirstFrame")
+local eventFrame = CreateFrame("Frame", "CozierCampsThirstFrame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 eventFrame:RegisterEvent("ZONE_CHANGED_NEW_AREA")

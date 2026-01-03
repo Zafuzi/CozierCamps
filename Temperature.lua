@@ -1,6 +1,6 @@
--- CozyCamps - Temperature.lua
+-- CozierCamps - Temperature.lua
 -- Temperature system - bidirectional meter that tracks heat/cold based on zone, weather, and activities
-local CC = CozyCamps
+local CC = CozierCamps
 
 -- Temperature scale: -100 (Freezing) to +100 (Scorching), 0 is neutral
 local temperature = 0
@@ -17,27 +17,27 @@ local UPDATE_INTERVAL = 1.0 -- Update every second
 -- TEMPERATURE OVERLAY SYSTEM
 -- ============================================
 -- Texture paths for cold overlays (negative temperature)
-local COLD_TEXTURES = {"Interface\\AddOns\\CozyCamps\\assets\\cold20.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\cold40.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\cold60.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\cold80.png"}
+local COLD_TEXTURES = { "Interface\\AddOns\\CozierCamps\\assets\\cold20.png",
+						"Interface\\AddOns\\CozierCamps\\assets\\cold40.png",
+						"Interface\\AddOns\\CozierCamps\\assets\\cold60.png",
+						"Interface\\AddOns\\CozierCamps\\assets\\cold80.png" }
 
 -- Texture paths for hot overlays (positive temperature)
-local HOT_TEXTURES = {"Interface\\AddOns\\CozyCamps\\assets\\hot20.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\hot40.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\hot60.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\hot80.png"}
+local HOT_TEXTURES = { "Interface\\AddOns\\CozierCamps\\assets\\hot20.png",
+					   "Interface\\AddOns\\CozierCamps\\assets\\hot40.png",
+					   "Interface\\AddOns\\CozierCamps\\assets\\hot60.png",
+					   "Interface\\AddOns\\CozierCamps\\assets\\hot80.png" }
 
 -- Overlay frames and alpha tracking
 local coldOverlayFrames = {}
-local coldOverlayCurrentAlphas = {0, 0, 0, 0}
-local coldOverlayTargetAlphas = {0, 0, 0, 0}
+local coldOverlayCurrentAlphas = { 0, 0, 0, 0 }
+local coldOverlayTargetAlphas = { 0, 0, 0, 0 }
 
 local hotOverlayFrames = {}
-local hotOverlayCurrentAlphas = {0, 0, 0, 0}
-local hotOverlayTargetAlphas = {0, 0, 0, 0}
+local hotOverlayCurrentAlphas = { 0, 0, 0, 0 }
+local hotOverlayTargetAlphas = { 0, 0, 0, 0 }
 -- Wet overlay (single layer, shown when wet effect is active)
-local WET_TEXTURE = "Interface\\AddOns\\CozyCamps\\assets\\wet.png"
+local WET_TEXTURE = "Interface\\AddOns\\CozierCamps\\assets\\wet.png"
 local wetOverlayFrame = nil
 local wetOverlayCurrentAlpha = 0
 local wetOverlayTargetAlpha = 0
@@ -45,7 +45,7 @@ local WET_OVERLAY_MAX_ALPHA = 0.35 -- Higher alpha with darkened texture
 local WET_OVERLAY_FADE_SPEED = 1.5 -- Fade in/out speed
 
 -- Drying overlay (orange glow on screen edges when drying off)
-local DRYING_TEXTURE = "Interface\\AddOns\\CozyCamps\\assets\\hot20.png"
+local DRYING_TEXTURE = "Interface\\AddOns\\CozierCamps\\assets\\hot20.png"
 local dryingOverlayFrame = nil
 local dryingOverlayCurrentAlpha = 0
 local dryingOverlayTargetAlpha = 0
@@ -121,7 +121,7 @@ local function CreateColdOverlayFrame(level)
 		return coldOverlayFrames[level]
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsColdOverlay_" .. level, UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsColdOverlay_" .. level, UIParent)
 	frame:SetAllPoints(UIParent)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
 	frame:SetFrameLevel(80 + level) -- Temperature is lowest layer
@@ -144,7 +144,7 @@ local function CreateHotOverlayFrame(level)
 		return hotOverlayFrames[level]
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsHotOverlay_" .. level, UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsHotOverlay_" .. level, UIParent)
 	frame:SetAllPoints(UIParent)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
 	frame:SetFrameLevel(80 + level) -- Temperature is lowest layer
@@ -167,7 +167,7 @@ local function CreateWetOverlayFrame()
 		return wetOverlayFrame
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsWetOverlay", UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsWetOverlay", UIParent)
 	frame:SetAllPoints(UIParent)
 	frame:SetFrameStrata("LOW") -- Behind UI elements
 	frame:SetFrameLevel(1) -- Lowest level in this strata
@@ -191,7 +191,7 @@ local function CreateDryingOverlayFrame()
 		return dryingOverlayFrame
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsDryingOverlay", UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsDryingOverlay", UIParent)
 	frame:SetAllPoints(UIParent)
 	frame:SetFrameStrata("LOW") -- Behind UI elements
 	frame:SetFrameLevel(2) -- Just above wet overlay
@@ -221,7 +221,7 @@ end
 
 -- Update temperature overlay alphas
 local function UpdateTemperatureOverlayAlphas(elapsed)
--- Update pulse phase
+	-- Update pulse phase
 	tempOverlayPulsePhase = tempOverlayPulsePhase + elapsed * TEMP_OVERLAY_PULSE_SPEED
 	if tempOverlayPulsePhase > 1 then
 		tempOverlayPulsePhase = tempOverlayPulsePhase - 1
@@ -241,7 +241,7 @@ local function UpdateTemperatureOverlayAlphas(elapsed)
 		local hotLevel = GetHotOverlayLevel()
 
 		for i = 1, 4 do
-		-- Cold overlays
+			-- Cold overlays
 			if i <= coldLevel then
 				coldOverlayTargetAlphas[i] = 0.7
 				if coldOverlayFrames[i] and not coldOverlayFrames[i]:IsShown() then
@@ -310,7 +310,7 @@ end
 
 -- Update wet overlay alpha (fade in/out based on wet effect state)
 local function UpdateWetOverlayAlpha(elapsed, isWet)
--- Create frame if needed (in case it wasn't created at init)
+	-- Create frame if needed (in case it wasn't created at init)
 	if not wetOverlayFrame then
 		CreateWetOverlayFrame()
 	end
@@ -349,7 +349,7 @@ end
 
 -- Update drying overlay alpha (orange glow with pulse when drying off)
 local function UpdateDryingOverlayAlpha(elapsed, isWet, isDrying)
--- Create frame if needed
+	-- Create frame if needed
 	if not dryingOverlayFrame then
 		CreateDryingOverlayFrame()
 	end
@@ -565,14 +565,14 @@ local function GetDirectionalRateModifier(tempChangeDirection)
 	local timeFactor = GetTimeFactor()
 
 	if timeFactor > 0 then
-	-- Daytime (positive timeFactor)
+		-- Daytime (positive timeFactor)
 		if tempChangeDirection > 0 then
 			return DAY_WARM_RATE -- Getting warmer during day = faster
 		else
 			return DAY_COOL_RATE -- Getting colder during day = slower
 		end
 	else
-	-- Nighttime (negative timeFactor)
+		-- Nighttime (negative timeFactor)
 		if tempChangeDirection < 0 then
 			return NIGHT_COOL_RATE -- Getting colder at night = faster
 		else
@@ -737,7 +737,7 @@ local function UpdateZoneWeatherType()
 		currentZoneWeatherType = GetZoneWeatherType(zoneName)
 		manualWeatherActive = false -- Reset weather toggle on zone change
 		CC.Debug(string.format("Zone changed to %s - weather type: %d, toggle reset", zoneName, currentZoneWeatherType),
-			"temperature")
+				"temperature")
 		-- Fire callback for UI to update
 		CC.FireCallbacks("ZONE_WEATHER_CHANGED", currentZoneWeatherType, manualWeatherActive)
 	end
@@ -745,7 +745,7 @@ end
 
 -- Public API for manual weather
 function CC.GetZoneWeatherType()
--- Debug override takes priority
+	-- Debug override takes priority
 	if debugWeatherTypeOverride then
 		return debugWeatherTypeOverride
 	end
@@ -901,16 +901,16 @@ local function GetZoneTemperatureEffect()
 	-- Asymmetric rate: moving AWAY from 0 is slower, returning TO 0 is faster
 	local effect = baseEffect
 	if temperature >= 0 and baseEffect > 0 then
-	-- At or above 0, getting hotter - slow down accumulation
+		-- At or above 0, getting hotter - slow down accumulation
 		effect = baseEffect * 0.6 -- Slower when building up heat from neutral
 	elseif temperature <= 0 and baseEffect < 0 then
-	-- At or below 0, getting colder - slow down accumulation
+		-- At or below 0, getting colder - slow down accumulation
 		effect = baseEffect * 0.6 -- Slower when building up cold from neutral
 	elseif temperature > 0 and baseEffect < 0 then
-	-- Above 0 and cooling down (recovering to 0) - 4x faster (doubled recovery)
+		-- Above 0 and cooling down (recovering to 0) - 4x faster (doubled recovery)
 		effect = baseEffect * 4
 	elseif temperature < 0 and baseEffect > 0 then
-	-- Below 0 and warming up (recovering to 0) - 4x faster (doubled recovery)
+		-- Below 0 and warming up (recovering to 0) - 4x faster (doubled recovery)
 		effect = baseEffect * 4
 	end
 
@@ -957,7 +957,7 @@ local function OnWeatherUpdate(weatherType, intensity)
 
 	local weatherName = weatherNames[weatherType] or ("Unknown(" .. tostring(weatherType) .. ")")
 	CC.Debug(string.format("Weather changed: %s (type %d, intensity %.2f)", weatherName, weatherType or 0,
-		intensity or 0), "temperature")
+			intensity or 0), "temperature")
 end
 
 -- Helper for mount check
@@ -1037,8 +1037,6 @@ end
 local manaPotionCoolingActive = false
 local manaPotionCoolingRemaining = 0
 local manaPotionCoolingRate = 0
-local MANA_POTION_DURATION = 30 -- Cooling effect lasts 30 seconds
-local MANA_POTION_HEAT_REDUCTION = 0.20 -- Reduces 20% of current heat
 
 -- Wet effect tracking (triggered when leaving water)
 local wetEffectActive = false
@@ -1058,7 +1056,7 @@ local function StartManaPotionCooling()
 	manaPotionCoolingRemaining = MANA_POTION_DURATION
 	manaPotionCoolingActive = true
 	CC.Debug(string.format("Mana potion cooling started: %.1f over %ds (rate: %.3f/s)", heatToRemove,
-		MANA_POTION_DURATION, manaPotionCoolingRate), "temperature")
+			MANA_POTION_DURATION, manaPotionCoolingRate), "temperature")
 end
 
 -- Main temperature update function
@@ -1100,13 +1098,13 @@ local function UpdateTemperature(elapsed)
 	-- 3. Swimming effects
 	if isSwimming then
 		if temperature > 0 then
-		-- Swimming reduces heat
+			-- Swimming reduces heat
 			tempChange = tempChange + SWIMMING_HEAT_REDUCTION
 		elseif temperature < 0 and zoneEffect < 0 then
-		-- Swimming in cold weather makes you colder
+			-- Swimming in cold weather makes you colder
 			tempChange = tempChange + SWIMMING_COLD_INCREASE
 		else
-		-- Normal swimming is slightly cooling
+			-- Normal swimming is slightly cooling
 			tempChange = tempChange + (SWIMMING_HEAT_REDUCTION * 0.5)
 		end
 		-- Start/refresh wet effect timer while swimming
@@ -1118,7 +1116,7 @@ local function UpdateTemperature(elapsed)
 	-- Rain also triggers wet effect (from manual weather toggle)
 	local isRaining = manualWeatherActive and currentZoneWeatherType == WEATHER_TYPE_RAIN
 	if isRaining and not isIndoors then
-	-- Refresh wet effect while in rain
+		-- Refresh wet effect while in rain
 		wetEffectActive = true
 		wetEffectRemaining = WET_DURATION
 	end
@@ -1127,7 +1125,7 @@ local function UpdateTemperature(elapsed)
 	-- When cold: multiplies cooling based on how cold you are - significant impact in cold areas
 	-- When hot: provides passive cooling to help keep you comfortable
 	if wetEffectActive and not isSwimming then
-	-- Dry 3x faster when near fire or resting (warming by fire or drying off at inn/city)
+		-- Dry 3x faster when near fire or resting (warming by fire or drying off at inn/city)
 		local dryingMultiplier = (isNearFire or isResting) and 3.0 or 1.0
 		wetEffectRemaining = wetEffectRemaining - (elapsed * dryingMultiplier)
 		if wetEffectRemaining <= 0 then
@@ -1135,8 +1133,8 @@ local function UpdateTemperature(elapsed)
 			wetEffectRemaining = 0
 			CC.Debug("Wet effect finished - you've dried off", "temperature")
 		elseif temperature < 0 and tempChange < 0 then
-		-- COLD: Calculate wet multiplier based on how cold the temperature is
-		-- At temp -10: minor boost, at temp -50+: significant boost
+			-- COLD: Calculate wet multiplier based on how cold the temperature is
+			-- At temp -10: minor boost, at temp -50+: significant boost
 			local coldIntensity = math.min(1, math.abs(temperature) / 50) -- 0 to 1 based on cold
 			local wetMultiplier = 1 + (coldIntensity * (WET_COLD_MULTIPLIER_MAX - 1))
 			-- Only multiply the cooling portion, not the entire tempChange
@@ -1144,7 +1142,7 @@ local function UpdateTemperature(elapsed)
 			tempChange = tempChange + coolingBoost
 			CC.Debug(string.format("Wet effect (cold): %.1fx cooling boost (%.1fs remaining)", wetMultiplier, wetEffectRemaining), "temperature")
 		elseif temperature > 0 then
-		-- HOT: Being wet helps you stay cool via evaporative cooling
+			-- HOT: Being wet helps you stay cool via evaporative cooling
 			tempChange = tempChange + WET_HEAT_REDUCTION
 			CC.Debug(string.format("Wet effect (hot): cooling at %.2f/s (%.1fs remaining)", WET_HEAT_REDUCTION, wetEffectRemaining), "temperature")
 		end
@@ -1153,7 +1151,7 @@ local function UpdateTemperature(elapsed)
 	-- 4. Drinking provides continuous cooling while buff is active (only when hot)
 	local isDrinking = IsPlayerDrinking()
 	if isDrinking and temperature > 0 then
-	-- Continuous cooling while drinking buff is active
+		-- Continuous cooling while drinking buff is active
 		tempChange = tempChange + DRINKING_COOLING_RATE
 		CC.Debug("Drinking cooling active", "temperature")
 	end
@@ -1169,17 +1167,17 @@ local function UpdateTemperature(elapsed)
 			CC.Debug("Mana potion cooling finished", "temperature")
 		end
 	elseif manaPotionCoolingActive and temperature <= 0 then
-	-- Stop cooling if we've reached 0 or below
+		-- Stop cooling if we've reached 0 or below
 		manaPotionCoolingActive = false
 		manaPotionCoolingRate = 0
 	end
 
 	-- 5. Rain reduces temperature if on warm side
 	if lastWeatherType and
-	(lastWeatherType == "Rain" or lastWeatherType == "Blood Rain" or lastWeatherType == 1 or lastWeatherType == 2 or
-	lastWeatherType == 3) then
+			(lastWeatherType == "Rain" or lastWeatherType == "Blood Rain" or lastWeatherType == 1 or lastWeatherType == 2 or
+					lastWeatherType == 3) then
 		if temperature > 0 and not isIndoors then
-		-- Extra cooling from rain when warm
+			-- Extra cooling from rain when warm
 			tempChange = tempChange - 0.5
 		end
 	end
@@ -1206,7 +1204,7 @@ local function UpdateTemperature(elapsed)
 		-- If current tempChange would still make us colder, fire needs to overcome it
 		-- But cap the overshoot prevention to avoid oscillation
 		if tempChange < 0 then
-		-- Just overcome the cooling, don't add extra
+			-- Just overcome the cooling, don't add extra
 			local netWarming = math.max(scaledRecovery, math.abs(tempChange) * 1.1)
 			tempChange = tempChange + netWarming
 		else
@@ -1216,8 +1214,8 @@ local function UpdateTemperature(elapsed)
 		-- When indoors (no mount available), fire allows full recovery to 0
 		-- Override the zone equilibrium limit
 		if isIndoors and equilibrium < 0 then
-		-- Force temperature toward 0 instead of equilibrium
-		-- This effectively ignores the cold zone penalty when warming by fire indoors
+			-- Force temperature toward 0 instead of equilibrium
+			-- This effectively ignores the cold zone penalty when warming by fire indoors
 			local recoveryToward0 = baseRecovery * 2 -- Strong push toward 0
 			if temperature < -1 then
 				tempChange = tempChange + recoveryToward0
@@ -1242,7 +1240,7 @@ local function UpdateTemperature(elapsed)
 
 	-- Apply indoor modifier to accumulation (not recovery)
 	if isIndoors and not isResting and not isNearFire then
-	-- Reduce rate of getting hotter/colder indoors
+		-- Reduce rate of getting hotter/colder indoors
 		if (tempChange > 0 and temperature >= 0) or (tempChange < 0 and temperature <= 0) then
 			tempChange = tempChange * INDOOR_MODIFIER
 		end
@@ -1264,12 +1262,11 @@ local function UpdateTemperature(elapsed)
 	-- Detect if counter-forces are actively fighting zone temperature
 	-- Counter-force = warming when zone wants cold, OR cooling when zone wants hot
 	local counterForceActive = false
-	local isDrinking = IsPlayerDrinking()
 	if equilibrium < -5 then
-	-- Cold zone - counter-force if warming (fire, inn, well fed)
+		-- Cold zone - counter-force if warming (fire, inn, well fed)
 		counterForceActive = isNearFire or isResting
 	elseif equilibrium > 5 then
-	-- Hot zone - counter-force if cooling (swimming, drinking, rain, wet)
+		-- Hot zone - counter-force if cooling (swimming, drinking, rain, wet)
 		counterForceActive = isSwimming or isDrinking or (isResting and temperature > 0) or wetEffectActive
 	end
 
@@ -1315,25 +1312,25 @@ local function UpdateTemperature(elapsed)
 		if snappedTo0 or (math.abs(temperature) < 0.5 and math.abs(oldTemp) >= 1) then
 			if lastEquilibriumMessage ~= "comfortable" then
 				messageToShow = "comfortable"
-				print("|cff88CCFFCozyCamps:|r |cff00FF00You are at a comfortable temperature.|r")
+				print("|cff88CCFFCozierCamps:|r |cff00FF00You are at a comfortable temperature.|r")
 			end
-		-- Hit warming cap (cold zone, can't get warmer outdoors)
+			-- Hit warming cap (cold zone, can't get warmer outdoors)
 		elseif equilibrium < -5 and not isIndoors and temperature < 0 then
-		-- Check if we're trying to warm but stuck at equilibrium
+			-- Check if we're trying to warm but stuck at equilibrium
 			local atWarmingCap = counterForceActive and math.abs(temperature - equilibrium) < 2 and oldTemp <=
-			temperature
+					temperature
 			if atWarmingCap and temperature < -3 and lastEquilibriumMessage ~= "cant_warm" then
 				messageToShow = "cant_warm"
-				print("|cff88CCFFCozyCamps:|r |cffFFAAAAYou can't seem to get any warmer.|r")
+				print("|cff88CCFFCozierCamps:|r |cffFFAAAAYou can't seem to get any warmer.|r")
 			end
-		-- Hit cooling cap (hot zone, can't get cooler)
+			-- Hit cooling cap (hot zone, can't get cooler)
 		elseif equilibrium > 5 and temperature > 0 then
-		-- Check if we're trying to cool but stuck at equilibrium
+			-- Check if we're trying to cool but stuck at equilibrium
 			local atCoolingCap = counterForceActive and math.abs(temperature - equilibrium) < 2 and oldTemp >=
-			temperature
+					temperature
 			if atCoolingCap and temperature > 3 and lastEquilibriumMessage ~= "cant_cool" then
 				messageToShow = "cant_cool"
-				print("|cff88CCFFCozyCamps:|r |cffFFAAAAYou can't seem to get any cooler.|r")
+				print("|cff88CCFFCozierCamps:|r |cffFFAAAAYou can't seem to get any cooler.|r")
 			end
 		end
 
@@ -1376,7 +1373,7 @@ local function UpdateTemperature(elapsed)
 	if CC.GetSetting("temperatureDebugEnabled") then
 		local hour, minute = GetGameTime()
 		CC.Debug(string.format("Temp: %.1f | Eq: %.0f | Env: %.1f°C (base: %d) | Change: %.3f/s | Time: %02d:%02d",
-			temperature, equilibrium or 0, envTemp, baseTemp, tempChange, hour, minute), "temperature")
+				temperature, equilibrium or 0, envTemp, baseTemp, tempChange, hour, minute), "temperature")
 	end
 end
 
@@ -1547,7 +1544,7 @@ local cachedEffects = {}
 
 -- Get list of currently active temperature effects (for tooltip display)
 function CC.GetTemperatureEffects()
--- Clear and reuse table to avoid memory allocation
+	-- Clear and reuse table to avoid memory allocation
 	for i = #cachedEffects, 1, -1 do
 		cachedEffects[i] = nil
 	end
@@ -1599,15 +1596,15 @@ function CC.GetTemperatureEffects()
 		local timeStr = minutes > 0 and string.format("%d:%02d", minutes, seconds) or string.format("%ds", seconds)
 		local dryingNote = (CC.isNearFire or IsResting()) and " [drying 3x]" or ""
 		if temperature < 0 then
-		-- Cold: Show multiplier intensity based on how cold it is
+			-- Cold: Show multiplier intensity based on how cold it is
 			local coldIntensity = math.min(1, math.abs(temperature) / 50)
 			local wetMultiplier = 1 + (coldIntensity * (WET_COLD_MULTIPLIER_MAX - 1))
 			table.insert(effects, string.format("Wet: %.1fx colder (%s)%s", wetMultiplier, timeStr, dryingNote))
 		elseif temperature > 0 then
-		-- Hot: Show that wetness is helping you cool down
+			-- Hot: Show that wetness is helping you cool down
 			table.insert(effects, string.format("Wet: evaporative cooling (%s)%s", timeStr, dryingNote))
 		else
-		-- Neutral: Show that wetness will affect temperature
+			-- Neutral: Show that wetness will affect temperature
 			table.insert(effects, string.format("Wet: affects temp when hot/cold (%s)%s", timeStr, dryingNote))
 		end
 	end
@@ -1692,7 +1689,7 @@ CC.RegisterCallback("SETTINGS_CHANGED", function(key)
 end)
 
 -- Event frame
-local eventFrame = CreateFrame("Frame", "CozyCampsTemperatureFrame")
+local eventFrame = CreateFrame("Frame", "CozierCampsTemperatureFrame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("PLAYER_DEAD")
@@ -1724,7 +1721,7 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1, arg2, ...)
 		end
 
 	elseif event == "PLAYER_DEAD" then
-	-- Temperature resets on death
+		-- Temperature resets on death
 		CC.ResetTemperature()
 
 	elseif event == "PLAYER_ENTERING_WORLD" or event == "ZONE_CHANGED_NEW_AREA" or event == "ZONE_CHANGED" then
@@ -1732,9 +1729,9 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1, arg2, ...)
 		UpdateZoneWeatherType()
 
 	elseif event == "UNIT_SPELLCAST_SUCCEEDED" and arg1 == "player" then
-	-- Detect mana potion usage for cooling effect
-	-- TBC Anniversary: arg2 = castGUID (like "Cast-4-5528-530-1-28499-00003BBBB7"), spellID in varargs
-	-- Classic Era: arg2 = spellName, arg3 = rank, arg4 = lineID, arg5 = spellID
+		-- Detect mana potion usage for cooling effect
+		-- TBC Anniversary: arg2 = castGUID (like "Cast-4-5528-530-1-28499-00003BBBB7"), spellID in varargs
+		-- Classic Era: arg2 = spellName, arg3 = rank, arg4 = lineID, arg5 = spellID
 		local spellName, spellID
 		local extraArg = ...
 
@@ -1753,18 +1750,18 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1, arg2, ...)
 		end
 
 		if type(arg2) == "string" and arg2:match("^Cast%-") then
-		-- TBC Anniversary format: arg2 is castGUID, extract spellID from it or varargs
-		-- castGUID format: Cast-X-XXXX-XXX-X-SPELLID-XXXXXXXX
+			-- TBC Anniversary format: arg2 is castGUID, extract spellID from it or varargs
+			-- castGUID format: Cast-X-XXXX-XXX-X-SPELLID-XXXXXXXX
 			local extractedID = arg2:match("Cast%-%d+%-%d+%-%d+%-%d+%-(%d+)")
 			spellID = extraArg or (extractedID and tonumber(extractedID))
 			spellName = GetSpellNameFromID(spellID)
 		elseif type(arg2) == "string" then
-		-- Classic Era format: arg2 is spell name directly
+			-- Classic Era format: arg2 is spell name directly
 			spellName = arg2
 			local _, _, _, classicSpellID = ...
 			spellID = classicSpellID
 		else
-		-- Fallback
+			-- Fallback
 			spellID = extraArg
 			spellName = GetSpellNameFromID(spellID)
 		end
@@ -1775,16 +1772,16 @@ eventFrame:SetScript("OnEvent", function(self, event, arg1, arg2, ...)
 		end
 
 		if spellName then
-		-- Check for mana potions by name patterns
-		-- Classic: Minor/Lesser/Greater/Superior/Major Mana Potion
+			-- Check for mana potions by name patterns
+			-- Classic: Minor/Lesser/Greater/Superior/Major Mana Potion
 
 			local isManaPotion = spellName:match("Mana Potion") or spellName:match("Restore Mana") or
-			spellName:match("Mana Restored")
+					spellName:match("Mana Restored")
 
 			-- Also check mage mana gems
 			local isManaGem = spellName:match("Mana Emerald") or spellName:match("Mana Ruby") or
-			spellName:match("Mana Citrine") or spellName:match("Mana Jade") or
-			spellName:match("Mana Agate")
+					spellName:match("Mana Citrine") or spellName:match("Mana Jade") or
+					spellName:match("Mana Agate")
 
 			-- Check by common mana potion spell IDs (Classic)
 			local MANA_POTION_SPELL_IDS = {

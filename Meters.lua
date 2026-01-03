@@ -1,6 +1,6 @@
--- CozyCamps - Meters.lua
+-- CozierCamps - Meters.lua
 -- Visual meters for Anguish, Exhaustion, and Temperature systems
-local CC = CozyCamps
+local CC = CozierCamps
 
 -- Forward declarations for functions used before they're defined
 local CalculateConstitution
@@ -15,31 +15,9 @@ local cachedSettings = {
 	temperatureEnabled = nil
 }
 
--- Dirty flags to avoid redundant updates
-local lastValues = {
-	anguish = -1,
-	exhaustion = -1,
-	hunger = -1,
-	thirst = -1,
-	temperature = -1,
-	constitution = -1
-}
-
 -- Cache math functions locally for performance
-local math_floor = math.floor
 local math_abs = math.abs
 local math_min = math.min
-local math_max = math.max
-local math_sin = math.sin
-
--- Smooth alpha interpolation (used for status icon fading)
-local function LerpAlpha(current, target, speed, elapsed)
-	local diff = target - current
-	if math_abs(diff) < 0.01 then
-		return target
-	end
-	return current + diff * math_min(1, speed * elapsed)
-end
 
 -- Smooth alpha interpolation (used for status icon fading)
 local function LerpAlpha(current, target, speed, elapsed)
@@ -66,11 +44,6 @@ local TEMP_ARROW_SIZE = 20
 local WEATHER_BUTTON_SIZE = 24
 local weatherButton = nil
 
--- Status icons row (Classic parity: icons above the meters)
-local statusIconsRow = nil
-local STATUS_ICON_SIZE = 18
-local STATUS_ROW_HEIGHT = 30
-
 -- Status icons row (Classic parity)
 local statusIconsRow = nil
 local STATUS_ICON_SIZE = 18
@@ -87,54 +60,54 @@ local thirstGlowPulseTimer = 0
 local THIRST_PULSE_DURATION = 0.5 -- How long the pulse lasts
 
 -- Available bar textures
-local BAR_TEXTURES = {"Interface\\TargetingFrame\\UI-StatusBar", -- Blizzard default
-	"Interface\\RaidFrame\\Raid-Bar-Hp-Fill", -- Blizzard Raid
-	"Interface\\AddOns\\CozyCamps\\assets\\UI-StatusBar", -- Smooth (custom if exists, fallback to Blizzard)
-	"Interface\\Buttons\\WHITE8x8", -- Flat/Solid
-	"Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar", -- Gloss
-	"Interface\\TARGETINGFRAME\\UI-TargetingFrame-BarFill", -- Minimalist
-	"Interface\\Tooltips\\UI-Tooltip-Background", -- Otravi-like
-	"Interface\\RaidFrame\\Raid-Bar-Resource-Fill", -- Striped
-	"Interface\\Buttons\\WHITE8x8" -- Solid
+local BAR_TEXTURES = { "Interface\\TargetingFrame\\UI-StatusBar", -- Blizzard default
+					   "Interface\\RaidFrame\\Raid-Bar-Hp-Fill", -- Blizzard Raid
+					   "Interface\\AddOns\\CozierCamps\\assets\\UI-StatusBar", -- Smooth (custom if exists, fallback to Blizzard)
+					   "Interface\\Buttons\\WHITE8x8", -- Flat/Solid
+					   "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar", -- Gloss
+					   "Interface\\TARGETINGFRAME\\UI-TargetingFrame-BarFill", -- Minimalist
+					   "Interface\\Tooltips\\UI-Tooltip-Background", -- Otravi-like
+					   "Interface\\RaidFrame\\Raid-Bar-Resource-Fill", -- Striped
+					   "Interface\\Buttons\\WHITE8x8" -- Solid
 }
 
 -- Available bar fonts (index 1 = inherit/default, no override)
-local BAR_FONTS = {{
-	name = "Default",
-	path = nil
-}, -- Inherit from UI/other addons
-	{
-		name = "Friz Quadrata",
-		path = "Fonts\\FRIZQT__.TTF"
-	}, -- Default WoW font
-	{
-		name = "Arial Narrow",
-		path = "Fonts\\ARIALN.TTF"
-	}, -- Clean narrow
-	{
-		name = "Skurri",
-		path = "Fonts\\skurri.TTF"
-	}, -- Stylized
-	{
-		name = "Morpheus",
-		path = "Fonts\\MORPHEUS.TTF"
-	}, -- Fantasy
-	{
-		name = "2002",
-		path = "Fonts\\2002.TTF"
-	}, -- Bold
-	{
-		name = "2002 Bold",
-		path = "Fonts\\2002B.TTF"
-	}, -- Extra bold
-	{
-		name = "Express Way",
-		path = "Fonts\\EXPRESSWAY.TTF"
-	}, -- Modern
-	{
-		name = "Nimrod MT",
-		path = "Fonts\\NIM_____.TTF"
-	} -- Serif
+local BAR_FONTS = { {
+						name = "Default",
+						path = nil
+					}, -- Inherit from UI/other addons
+					{
+						name = "Friz Quadrata",
+						path = "Fonts\\FRIZQT__.TTF"
+					}, -- Default WoW font
+					{
+						name = "Arial Narrow",
+						path = "Fonts\\ARIALN.TTF"
+					}, -- Clean narrow
+					{
+						name = "Skurri",
+						path = "Fonts\\skurri.TTF"
+					}, -- Stylized
+					{
+						name = "Morpheus",
+						path = "Fonts\\MORPHEUS.TTF"
+					}, -- Fantasy
+					{
+						name = "2002",
+						path = "Fonts\\2002.TTF"
+					}, -- Bold
+					{
+						name = "2002 Bold",
+						path = "Fonts\\2002B.TTF"
+					}, -- Extra bold
+					{
+						name = "Express Way",
+						path = "Fonts\\EXPRESSWAY.TTF"
+					}, -- Modern
+					{
+						name = "Nimrod MT",
+						path = "Fonts\\NIM_____.TTF"
+					} -- Serif
 }
 
 -- Get the current bar texture path
@@ -202,16 +175,6 @@ local TEMP_HOT_DARK = {
 	g = 0.4,
 	b = 0.1
 } -- Dark orange (far right)
-local TEMP_NEUTRAL = {
-	r = 0.5,
-	g = 0.5,
-	b = 0.5
-} -- Gray (center)
-local TEMP_RECOVERY_COLOR = {
-	r = 0.1,
-	g = 0.9,
-	b = 0.2
-} -- Green when recovering
 
 -- Hunger colors
 local HUNGER_COLOR = {
@@ -243,16 +206,6 @@ local CONSTITUTION_BAR_COLOR = {
 	g = 0.45,
 	b = 0.18
 } -- Deep dark green to match the vial
-local CONSTITUTION_BAR_IMPROVING = {
-	r = 0.2,
-	g = 0.8,
-	b = 0.3
-} -- Green when improving
-local CONSTITUTION_BAR_DECLINING = {
-	r = 0.9,
-	g = 0.4,
-	b = 0.1
-} -- Orange when declining
 
 -- Glow colors (super vibrant for visibility)
 local GLOW_RED = {
@@ -265,11 +218,6 @@ local GLOW_GREEN = {
 	g = 1.0,
 	b = 0.4
 } -- Bright vibrant green for healing (doubled brightness)
-local GLOW_BLUE = {
-	r = 0.3,
-	g = 0.5,
-	b = 1.0
-} -- Vibrant blue for paused state
 local GLOW_ORANGE = {
 	r = 1.0,
 	g = 0.5,
@@ -277,10 +225,10 @@ local GLOW_ORANGE = {
 } -- Orange for negative effects (accumulating)
 
 -- Pulse sizes based on damage type (1=normal, 2=crit, 3=daze)
-local PULSE_SIZES = {3, 5, 8} -- Smaller glow sizes to avoid overlap
+local PULSE_SIZES = { 3, 5, 8 } -- Smaller glow sizes to avoid overlap
 
 -- Glow sizes based on movement type (1=mounted, 2=walking, 3=combat)
-local GLOW_SIZES = {3, 4, 6}
+local GLOW_SIZES = { 3, 4, 6 }
 local GLOW_SIZE_IDLE = 2 -- Smaller glow for standing idle
 local GLOW_SIZE_PAUSED = -12 -- Negative to shrink inside the bar edges
 
@@ -358,15 +306,15 @@ local function StartHeartbeatSound()
 
 	adventureModeUIState.heartbeatPlaying = true
 	-- Play immediately
-	PlaySoundFile("Interface\\AddOns\\CozyCamps\\assets\\heartbeat.wav", "SFX")
+	PlaySoundFile("Interface\\AddOns\\CozierCamps\\assets\\heartbeat.wav", "SFX")
 
 	-- Set up repeating ticker
 	adventureModeUIState.heartbeatHandle = C_Timer.NewTicker(HEARTBEAT_INTERVAL, function()
 		if adventureModeUIState.heartbeatPlaying and CC.GetSetting("playSoundHeartbeat") and
-		CC.GetSetting("constitutionEnabled") and CC.IsPlayerEligible() then
-			PlaySoundFile("Interface\\AddOns\\CozyCamps\\assets\\heartbeat.wav", "SFX")
+				CC.GetSetting("constitutionEnabled") and CC.IsPlayerEligible() then
+			PlaySoundFile("Interface\\AddOns\\CozierCamps\\assets\\heartbeat.wav", "SFX")
 		else
-		-- Stop if no longer needed
+			-- Stop if no longer needed
 			if adventureModeUIState.heartbeatHandle then
 				adventureModeUIState.heartbeatHandle:Cancel()
 				adventureModeUIState.heartbeatHandle = nil
@@ -442,7 +390,7 @@ local function UpdateUIFadeAnimations(elapsed)
 	-- Target Frame fade
 	local tf = frameFadeState.targetFrame
 	if TargetFrame then
-	-- Interpolate alpha toward target
+		-- Interpolate alpha toward target
 		if tf.target ~= tf.current then
 			local diff = tf.target - tf.current
 			if math.abs(diff) < 0.02 then
@@ -490,7 +438,7 @@ local function UpdateUIFadeAnimations(elapsed)
 					cp:Hide()
 				end
 			end
-		-- Show when should be visible and there's a target
+			-- Show when should be visible and there's a target
 		elseif tf.target == 1 and UnitExists("target") and not TargetFrame:IsShown() then
 			TargetFrame:Show()
 		end
@@ -520,15 +468,6 @@ local function FadeInPlayerFrame()
 		PlayerFrame:Show()
 		frameFadeState.playerFrame.shown = true
 	end
-	return true
-end
-
--- Fade out target frame (instead of instant hide)
-local function FadeOutTargetFrame()
-	if InCombatLockdown() then
-		return false
-	end
-	frameFadeState.targetFrame.target = 0
 	return true
 end
 
@@ -570,7 +509,7 @@ local function SafeShowFrame(frame)
 		return false
 	end -- Can't modify protected frames in combat
 	local success, err = pcall(function()
-	-- Force complete visual reset to avoid ghost artifacts
+		-- Force complete visual reset to avoid ghost artifacts
 		frame:SetAlpha(1)
 		frame:Show()
 		-- Force layout update if possible
@@ -581,10 +520,10 @@ local function SafeShowFrame(frame)
 		if frame.GetName then
 			local frameName = frame:GetName()
 			if frameName and (frameName:match("Bar") or frameName == "MainMenuBar") then
-			-- Reset alpha on any child buttons
+				-- Reset alpha on any child buttons
 				for i = 1, 12 do
 					local buttonName = frameName == "MainMenuBar" and ("ActionButton" .. i) or
-					(frameName .. "Button" .. i)
+							(frameName .. "Button" .. i)
 					local button = _G[buttonName]
 					if button then
 						button:SetAlpha(1)
@@ -604,16 +543,16 @@ end
 
 -- Update Adventure Mode UI visibility based on constitution
 local function UpdateAdventureModeUI(constitution)
--- Don't modify UI during combat (protected frames)
+	-- Don't modify UI during combat (protected frames)
 	if InCombatLockdown() then
 		return
 	end
 
 	if not CC.GetSetting or not CC.GetSetting("constitutionEnabled") then
-	-- Adventure mode not enabled, restore everything
+		-- Adventure mode not enabled, restore everything
 		if adventureModeUIState.playerFrameHidden or adventureModeUIState.targetFrameHidden or
-		adventureModeUIState.actionBarsHidden or adventureModeUIState.nameplatesDisabled then
-		-- Fade in player/target frames (not handled by unified API)
+				adventureModeUIState.actionBarsHidden or adventureModeUIState.nameplatesDisabled then
+			-- Fade in player/target frames (not handled by unified API)
 			FadeInPlayerFrame()
 			if UnitExists("target") then
 				FadeInTargetFrame()
@@ -646,7 +585,7 @@ local function UpdateAdventureModeUI(constitution)
 	local inInstance = CC.IsInDungeonOrRaid and CC.IsInDungeonOrRaid()
 	local onTaxi = UnitOnTaxi("player")
 	if inInstance or onTaxi then
-	-- Restore player frame if it was hidden
+		-- Restore player frame if it was hidden
 		if adventureModeUIState.playerFrameHidden then
 			FadeInPlayerFrame()
 			frameFadeState.playerFrame.target = 1
@@ -752,7 +691,7 @@ local function UpdateAdventureModeUI(constitution)
 			end
 		end)
 	else
-	-- Constitution above 75% - ensure target frame can be visible
+		-- Constitution above 75% - ensure target frame can be visible
 		if TargetFrame then
 			frameFadeState.targetFrame.target = 1
 		end
@@ -761,7 +700,7 @@ local function UpdateAdventureModeUI(constitution)
 			CC.Debug("Adventure Mode: Target frame fading in", "constitution")
 		end
 		if adventureModeUIState.nameplatesDisabled then
-		-- Restore nameplate settings
+			-- Restore nameplate settings
 			pcall(function()
 				SetCVar("nameplateShowAll", adventureModeUIState.previousNameplateSettings.showAll or "1")
 				SetCVar("nameplateShowFriends", adventureModeUIState.previousNameplateSettings.showFriends or "0")
@@ -793,8 +732,8 @@ local function UpdateAdventureModeUI(constitution)
 	-- Below 25%: Hide action bars, minimap, and disable map using unified hiding system
 	-- But NOT when dead - player needs full UI access
 	if constitution < ADVENTURE_THRESHOLD_BARS and not isPlayerDead then
-	-- Use unified action bar hiding API from ActionBars.lua
-	-- This hides all action bars, minimap, reputation bar, etc. consistently
+		-- Use unified action bar hiding API from ActionBars.lua
+		-- This hides all action bars, minimap, reputation bar, etc. consistently
 		if not adventureModeUIState.actionBarsHidden then
 			if CC.SetConstitutionOverride then
 				CC.SetConstitutionOverride(true)
@@ -807,16 +746,16 @@ local function UpdateAdventureModeUI(constitution)
 		-- Only block map if the blockMap setting is enabled
 		if CC.GetSetting("blockMap") then
 			if not adventureModeUIState.mapDisabled then
-			-- Hook the map to prevent opening (only install hook once)
+				-- Hook the map to prevent opening (only install hook once)
 				if not adventureModeUIState.mapHookInstalled then
 					pcall(function()
 						hooksecurefunc("ToggleWorldMap", function()
-						-- Allow map when dead, in combat, or when blockMap setting is disabled
+							-- Allow map when dead, in combat, or when blockMap setting is disabled
 							if adventureModeUIState.mapDisabled and CC.GetSetting("blockMap") and not InCombatLockdown() and
-							not UnitIsDead("player") and not UnitIsGhost("player") and WorldMapFrame and
-							WorldMapFrame:IsShown() then
+									not UnitIsDead("player") and not UnitIsGhost("player") and WorldMapFrame and
+									WorldMapFrame:IsShown() then
 								WorldMapFrame:Hide()
-								print("|cff88CCFFCozyCamps:|r |cffFF6666Map disabled - constitution too low!|r")
+								print("|cff88CCFFCozierCamps:|r |cffFF6666Map disabled - constitution too low!|r")
 							end
 						end)
 					end)
@@ -833,12 +772,12 @@ local function UpdateAdventureModeUI(constitution)
 				end
 				CC.Debug("Adventure Mode: Map disabled (constitution < 25%)", "constitution")
 			else
-			-- Re-enforce map closure if map somehow got opened (only outside combat)
+				-- Re-enforce map closure if map somehow got opened (only outside combat)
 				if not InCombatLockdown() then
 					pcall(function()
 						if WorldMapFrame and WorldMapFrame:IsShown() then
 							WorldMapFrame:Hide()
-							print("|cff88CCFFCozyCamps:|r |cffFF6666Map disabled - constitution too low!|r")
+							print("|cff88CCFFCozierCamps:|r |cffFF6666Map disabled - constitution too low!|r")
 						end
 					end)
 				end
@@ -848,7 +787,7 @@ local function UpdateAdventureModeUI(constitution)
 		-- Start heartbeat sound if enabled
 		StartHeartbeatSound()
 	else
-	-- Constitution recovered - release the override
+		-- Constitution recovered - release the override
 		if adventureModeUIState.actionBarsHidden then
 			adventureModeUIState.actionBarsHidden = false
 
@@ -876,15 +815,11 @@ local function UpdateAdventureModeUI(constitution)
 end
 
 -- Animation state
-local AnguishGlowAlpha = 0
-local exhaustionGlowAlpha = 0
-
 -- Atlas textures for glow effects
 -- GarrMission_LevelUpBanner - Red damage glow for Anguish (note: two r's in Garr)
 -- Use same atlas for green but tint it - ensures consistent size
 local ATLAS_RED = "GarrMission_LevelUpBanner"
 local ATLAS_GREEN = "GarrMission_LevelUpBanner" -- Same atlas, will be tinted green
-local ATLAS_BLUE = "GarrMission_ListGlow-Highlight"
 local ATLAS_PAUSED = "search-highlight" -- Yellow glow for paused state
 
 -- Create glow frame using atlas textures for beautiful glow effects
@@ -899,14 +834,14 @@ local function CreateGlowFrame(meter, isAnguish)
 	glow:SetPoint("BOTTOMRIGHT", meter, "BOTTOMRIGHT", glowPadding, -glowPadding - 1)
 
 	if isAnguish then
-	-- Single texture for red (symmetric atlas)
+		-- Single texture for red (symmetric atlas)
 		glow.texture = glow:CreateTexture(nil, "ARTWORK")
 		glow.texture:SetAllPoints()
 		glow.texture:SetAtlas(ATLAS_RED)
 		glow.texture:SetBlendMode("ADD")
 		glow.isTwoSided = false
 	else
-	-- White/pearl glow - use the same atlas, tinted cool white
+		-- White/pearl glow - use the same atlas, tinted cool white
 		glow.texture = glow:CreateTexture(nil, "ARTWORK")
 		glow.texture:SetAllPoints()
 		glow.texture:SetAtlas(ATLAS_RED) -- Use same atlas as red
@@ -950,35 +885,35 @@ local function SetGlowColor(glow, r, g, b, isPaused)
 	local isOrange = r > 0.8 and g > 0.2 and g < 0.6 and b < 0.3
 
 	if isPaused and not glow.isPaused then
-	-- Switch to paused state - use native atlas color (yellow/blue)
+		-- Switch to paused state - use native atlas color (yellow/blue)
 		glow.texture:SetAtlas(ATLAS_PAUSED)
 		glow.texture:SetVertexColor(1, 1, 1) -- No tint, use native color
 		glow.isGreen = false
 		glow.isOrange = false
 		glow.isPaused = true
 	elseif not isPaused and glow.isPaused then
-	-- Exiting paused state - restore based on current color request
+		-- Exiting paused state - restore based on current color request
 		glow.texture:SetAtlas(ATLAS_RED)
 		glow.isPaused = false
-	-- Fall through to color handling below
+		-- Fall through to color handling below
 	end
 
 	-- Handle color switching when not paused
 	if not isPaused then
 		if isGreen and not glow.isGreen then
-		-- Switch to green - tint the atlas green
+			-- Switch to green - tint the atlas green
 			glow.texture:SetAtlas(ATLAS_GREEN)
 			glow.texture:SetVertexColor(0.2, 1.0, 0.3) -- Green tint
 			glow.isGreen = true
 			glow.isOrange = false
 		elseif isOrange and not glow.isOrange then
-		-- Switch to orange - tint the atlas orange
+			-- Switch to orange - tint the atlas orange
 			glow.texture:SetAtlas(ATLAS_RED)
 			glow.texture:SetVertexColor(1.0, 0.5, 0.1) -- Orange tint
 			glow.isGreen = false
 			glow.isOrange = true
 		elseif not isGreen and not isOrange and (glow.isGreen or glow.isOrange) then
-		-- Switch back to original/default color
+			-- Switch back to original/default color
 			glow.texture:SetAtlas(ATLAS_RED)
 			if glow.isAnguish then
 				glow.texture:SetVertexColor(1, 1, 1) -- No tint for red (atlas is already red)
@@ -997,13 +932,13 @@ local function UpdateGlowSize(glow, meter, size)
 
 	-- For paused state (negative size), match temperature cold glow styling
 	if size < 0 then
-	-- Paused: tight vertical glow like temperature cold effect
-	-- No horizontal extension, just 2px vertical extension
+		-- Paused: tight vertical glow like temperature cold effect
+		-- No horizontal extension, just 2px vertical extension
 		glow:ClearAllPoints()
 		glow:SetPoint("TOPLEFT", meter, "TOPLEFT", 0, 2)
 		glow:SetPoint("BOTTOMRIGHT", meter, "BOTTOMRIGHT", 0, -2)
 	else
-	-- Normal: glow extends beyond the bar
+		-- Normal: glow extends beyond the bar
 		local glowPadding = size + 8
 		glow:ClearAllPoints()
 		glow:SetPoint("TOPLEFT", meter, "TOPLEFT", -glowPadding, glowPadding + verticalOffset)
@@ -1017,7 +952,7 @@ local function CreateMilestoneNotches(meter)
 	local barHeight = METER_HEIGHT - (METER_PADDING * 2)
 
 	meter.notches = {}
-	local milestones = {25, 50, 75}
+	local milestones = { 25, 50, 75 }
 
 	for _, pct in ipairs(milestones) do
 		local notch = meter:CreateTexture(nil, "OVERLAY", nil, 6)
@@ -1035,7 +970,7 @@ local ICON_SIZE = 14
 
 -- Create a single meter frame
 local function CreateMeter(name, parent, yOffset, iconPath, isAnguish)
-	local meter = CreateFrame("Frame", "CozyCamps" .. name .. "Meter", parent, "BackdropTemplate")
+	local meter = CreateFrame("Frame", "CozierCamps" .. name .. "Meter", parent, "BackdropTemplate")
 	meter:SetSize(METER_WIDTH, METER_HEIGHT)
 	meter:SetPoint("TOP", parent, "TOP", 0, yOffset)
 
@@ -1090,10 +1025,10 @@ local function CreateMeter(name, parent, yOffset, iconPath, isAnguish)
 	-- Enable mouse for tooltip and drag forwarding to container
 	meter:EnableMouse(true)
 	meter:RegisterForDrag("LeftButton")
-	meter:SetScript("OnDragStart", function(self)
+	meter:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter:SetScript("OnDragStop", function(self)
+	meter:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 			-- Save absolute screen coordinates of top-left corner for consistent placement
@@ -1115,7 +1050,7 @@ end
 
 -- Create constitution bar meter (for bar mode - appears at top of stack)
 local function CreateConstitutionBarMeter(parent, yOffset)
-	local meter = CreateFrame("Frame", "CozyCampsConstitutionBarMeter", parent, "BackdropTemplate")
+	local meter = CreateFrame("Frame", "CozierCampsConstitutionBarMeter", parent, "BackdropTemplate")
 	meter:SetSize(METER_WIDTH, METER_HEIGHT)
 	meter:SetPoint("TOP", parent, "TOP", 0, yOffset)
 
@@ -1149,7 +1084,7 @@ local function CreateConstitutionBarMeter(parent, yOffset)
 	meter.icon = meter:CreateTexture(nil, "OVERLAY", nil, 7)
 	meter.icon:SetSize(ICON_SIZE * 1.1, ICON_SIZE * 1.1) -- Slightly larger like Anguish
 	meter.icon:SetPoint("LEFT", meter.bar, "LEFT", 2, 0)
-	meter.icon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\constitutionicon.blp")
+	meter.icon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\constitutionicon.blp")
 	meter.icon:SetVertexColor(1, 1, 1, 1)
 
 	-- Glow frame (same style as Anguish - using atlas)
@@ -1172,10 +1107,10 @@ local function CreateConstitutionBarMeter(parent, yOffset)
 	-- Enable mouse for tooltip and drag
 	meter:EnableMouse(true)
 	meter:RegisterForDrag("LeftButton")
-	meter:SetScript("OnDragStart", function(self)
+	meter:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter:SetScript("OnDragStop", function(self)
+	meter:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 			-- Save absolute screen coordinates of top-left corner for consistent placement
@@ -1197,7 +1132,7 @@ end
 
 -- Setup constitution bar tooltip (reuses logic from orb tooltip)
 local function SetupConstitutionBarTooltip(meter)
--- Use hitbox for vial meters, otherwise use meter itself
+	-- Use hitbox for vial meters, otherwise use meter itself
 	local tooltipTarget = meter.hitbox or meter
 
 	-- Ensure hitbox is properly configured for mouse events
@@ -1233,7 +1168,7 @@ local function SetupConstitutionBarTooltip(meter)
 		local hungerPaused = (not hungerEnabled) or (CC.IsHungerPaused and CC.IsHungerPaused() or false)
 		local thirstPaused = (not thirstEnabled) or (CC.IsThirstPaused and CC.IsThirstPaused() or false)
 		local temperaturePaused = (not temperatureEnabled) or
-		(CC.IsTemperaturePaused and CC.IsTemperaturePaused() or false)
+				(CC.IsTemperaturePaused and CC.IsTemperaturePaused() or false)
 		local isPaused = anguishPaused and exhaustionPaused and hungerPaused and thirstPaused and temperaturePaused
 
 		-- Title based on paused or glow state
@@ -1258,13 +1193,6 @@ local function SetupConstitutionBarTooltip(meter)
 
 		-- Active Effects section at the top (shows current status of each meter)
 		GameTooltip:AddLine("Active Effects:", 1, 0.9, 0.5)
-
-		-- Get status for each enabled meter
-		local anguishEnabled = CC.GetSetting and CC.GetSetting("AnguishEnabled")
-		local exhaustionEnabled = CC.GetSetting and CC.GetSetting("exhaustionEnabled")
-		local hungerEnabled = CC.GetSetting and CC.GetSetting("hungerEnabled")
-		local thirstEnabled = CC.GetSetting and CC.GetSetting("thirstEnabled")
-		local temperatureEnabled = CC.GetSetting and CC.GetSetting("temperatureEnabled")
 
 		local totalWeight = 0
 		if anguishEnabled then
@@ -1292,55 +1220,55 @@ local function SetupConstitutionBarTooltip(meter)
 		if anguishEnabled then
 			local anguish = CC.GetAnguish and CC.GetAnguish() or 0
 			local status = anguishPaused and "Resting" or
-			(anguish > 50 and "Wounded" or (anguish > 20 and "Bruised" or "Healthy"))
-			local statusColor = anguish > 50 and {1, 0.4, 0.4} or (anguish > 20 and {1, 0.8, 0.4} or {0.4, 1, 0.4})
+					(anguish > 50 and "Wounded" or (anguish > 20 and "Bruised" or "Healthy"))
+			local statusColor = anguish > 50 and { 1, 0.4, 0.4 } or (anguish > 20 and { 1, 0.8, 0.4 } or { 0.4, 1, 0.4 })
 			GameTooltip:AddLine(string.format("  Anguish: %s (%.0f%%)", status, anguishPct), statusColor[1],
-				statusColor[2], statusColor[3])
+					statusColor[2], statusColor[3])
 		end
 
 		if exhaustionEnabled then
 			local exhaustion = CC.GetExhaustion and CC.GetExhaustion() or 0
 			local status = exhaustionPaused and "Resting" or
-			(exhaustion > 50 and "Tired" or (exhaustion > 20 and "Fatigued" or "Energized"))
-			local statusColor = exhaustion > 50 and {1, 0.4, 0.4} or
-			(exhaustion > 20 and {1, 0.8, 0.4} or {0.4, 1, 0.4})
+					(exhaustion > 50 and "Tired" or (exhaustion > 20 and "Fatigued" or "Energized"))
+			local statusColor = exhaustion > 50 and { 1, 0.4, 0.4 } or
+					(exhaustion > 20 and { 1, 0.8, 0.4 } or { 0.4, 1, 0.4 })
 			GameTooltip:AddLine(string.format("  Exhaustion: %s (%.0f%%)", status, exhaustionPct), statusColor[1],
-				statusColor[2], statusColor[3])
+					statusColor[2], statusColor[3])
 		end
 
 		if hungerEnabled then
 			local hunger = CC.GetHunger and CC.GetHunger() or 0
 			local isWellFed = CC.HasWellFedBuff and CC.HasWellFedBuff() or false
 			local status = isWellFed and "Well Fed" or
-			(hungerPaused and "Satisfied" or
-			(hunger > 50 and "Hungry" or (hunger > 20 and "Peckish" or "Satisfied")))
-			local statusColor = isWellFed and {0.4, 1, 0.8} or
-			(hunger > 50 and {1, 0.4, 0.4} or (hunger > 20 and {1, 0.8, 0.4} or {0.4, 1, 0.4}))
+					(hungerPaused and "Satisfied" or
+							(hunger > 50 and "Hungry" or (hunger > 20 and "Peckish" or "Satisfied")))
+			local statusColor = isWellFed and { 0.4, 1, 0.8 } or
+					(hunger > 50 and { 1, 0.4, 0.4 } or (hunger > 20 and { 1, 0.8, 0.4 } or { 0.4, 1, 0.4 }))
 			GameTooltip:AddLine(string.format("  Hunger: %s (%.0f%%)", status, hungerPct), statusColor[1],
-				statusColor[2], statusColor[3])
+					statusColor[2], statusColor[3])
 		end
 
 		if thirstEnabled then
 			local thirst = CC.GetThirst and CC.GetThirst() or 0
 			local hasRefreshed = CC.HasRefreshedBuff and CC.HasRefreshedBuff() or false
 			local status = hasRefreshed and "Refreshed" or
-			(thirstPaused and "Hydrated" or
-			(thirst > 50 and "Parched" or (thirst > 20 and "Thirsty" or "Hydrated")))
-			local statusColor = hasRefreshed and {0.4, 1, 0.8} or
-			(thirst > 50 and {1, 0.4, 0.4} or (thirst > 20 and {1, 0.8, 0.4} or {0.4, 1, 0.4}))
+					(thirstPaused and "Hydrated" or
+							(thirst > 50 and "Parched" or (thirst > 20 and "Thirsty" or "Hydrated")))
+			local statusColor = hasRefreshed and { 0.4, 1, 0.8 } or
+					(thirst > 50 and { 1, 0.4, 0.4 } or (thirst > 20 and { 1, 0.8, 0.4 } or { 0.4, 1, 0.4 }))
 			GameTooltip:AddLine(string.format("  Thirst: %s (%.0f%%)", status, thirstPct), statusColor[1],
-				statusColor[2], statusColor[3])
+					statusColor[2], statusColor[3])
 		end
 
 		if temperatureEnabled then
 			local temp = CC.GetTemperature and CC.GetTemperature() or 0
 			local status = temperaturePaused and "Comfortable" or (temp < -30 and "Freezing" or
-			(temp < -10 and "Cold" or
-			(temp > 30 and "Overheating" or (temp > 10 and "Warm" or "Comfortable"))))
-			local statusColor = (math.abs(temp) > 30) and {1, 0.4, 0.4} or
-			(math.abs(temp) > 10 and {1, 0.8, 0.4} or {0.4, 1, 0.4})
+					(temp < -10 and "Cold" or
+							(temp > 30 and "Overheating" or (temp > 10 and "Warm" or "Comfortable"))))
+			local statusColor = (math.abs(temp) > 30) and { 1, 0.4, 0.4 } or
+					(math.abs(temp) > 10 and { 1, 0.8, 0.4 } or { 0.4, 1, 0.4 })
 			GameTooltip:AddLine(string.format("  Temperature: %s (%.0f%%)", status, temperaturePct), statusColor[1],
-				statusColor[2], statusColor[3])
+					statusColor[2], statusColor[3])
 		end
 
 		GameTooltip:AddLine(" ")
@@ -1349,29 +1277,29 @@ local function SetupConstitutionBarTooltip(meter)
 		if tooltipMode == "detailed" then
 			GameTooltip:AddLine("Impact Breakdown:", 0.8, 0.8, 0.8)
 			if contributions.anguish then
-				local impactColor = contributions.anguish > 5 and {1, 0.4, 0.4} or {0.4, 1, 0.4}
+				local impactColor = contributions.anguish > 5 and { 1, 0.4, 0.4 } or { 0.4, 1, 0.4 }
 				GameTooltip:AddLine(string.format("  Anguish: -%.1f%%", contributions.anguish), impactColor[1],
-					impactColor[2], impactColor[3])
+						impactColor[2], impactColor[3])
 			end
 			if contributions.exhaustion then
-				local impactColor = contributions.exhaustion > 5 and {1, 0.4, 0.4} or {0.4, 1, 0.4}
+				local impactColor = contributions.exhaustion > 5 and { 1, 0.4, 0.4 } or { 0.4, 1, 0.4 }
 				GameTooltip:AddLine(string.format("  Exhaustion: -%.1f%%", contributions.exhaustion), impactColor[1],
-					impactColor[2], impactColor[3])
+						impactColor[2], impactColor[3])
 			end
 			if contributions.hunger then
-				local impactColor = contributions.hunger > 5 and {1, 0.4, 0.4} or {0.4, 1, 0.4}
+				local impactColor = contributions.hunger > 5 and { 1, 0.4, 0.4 } or { 0.4, 1, 0.4 }
 				GameTooltip:AddLine(string.format("  Hunger: -%.1f%%", contributions.hunger), impactColor[1],
-					impactColor[2], impactColor[3])
+						impactColor[2], impactColor[3])
 			end
 			if contributions.thirst then
-				local impactColor = contributions.thirst > 5 and {1, 0.4, 0.4} or {0.4, 1, 0.4}
+				local impactColor = contributions.thirst > 5 and { 1, 0.4, 0.4 } or { 0.4, 1, 0.4 }
 				GameTooltip:AddLine(string.format("  Thirst: -%.1f%%", contributions.thirst), impactColor[1],
-					impactColor[2], impactColor[3])
+						impactColor[2], impactColor[3])
 			end
 			if contributions.temperature then
-				local impactColor = contributions.temperature > 5 and {1, 0.4, 0.4} or {0.4, 1, 0.4}
+				local impactColor = contributions.temperature > 5 and { 1, 0.4, 0.4 } or { 0.4, 1, 0.4 }
 				GameTooltip:AddLine(string.format("  Temperature: -%.1f%%", contributions.temperature), impactColor[1],
-					impactColor[2], impactColor[3])
+						impactColor[2], impactColor[3])
 			end
 
 			GameTooltip:AddLine(" ")
@@ -1396,7 +1324,7 @@ end
 
 -- Setup Anguish meter tooltip
 local function SetupAnguishTooltip(meter)
--- Use hitbox for vial meters, otherwise use meter itself
+	-- Use hitbox for vial meters, otherwise use meter itself
 	local tooltipTarget = meter.hitbox or meter
 	tooltipTarget:SetScript("OnEnter", function(self)
 		local tooltipMode = CC.GetSetting and CC.GetSetting("tooltipDisplayMode") or "detailed"
@@ -1488,7 +1416,7 @@ end
 
 -- Setup exhaustion meter tooltip
 local function SetupExhaustionTooltip(meter)
--- Use hitbox for vial meters, otherwise use meter itself
+	-- Use hitbox for vial meters, otherwise use meter itself
 	local tooltipTarget = meter.hitbox or meter
 	tooltipTarget:SetScript("OnEnter", function(self)
 		local tooltipMode = CC.GetSetting and CC.GetSetting("tooltipDisplayMode") or "detailed"
@@ -1707,7 +1635,7 @@ local function UpdateThirstMeter(elapsed)
 			thirstMeter.glowGold:SetAlpha(glowType == "gold" and alpha or 0)
 		end
 	else
-	-- BAR MODE: Use atlas glow system
+		-- BAR MODE: Use atlas glow system
 		local glow = thirstMeter.glow
 		if not glow then
 			return
@@ -1787,7 +1715,7 @@ local function UpdateHungerMeter(elapsed)
 	if smoothedHungerDisplay == nil then
 		smoothedHungerDisplay = targetDisplay
 	else
-	-- Lerp toward target value
+		-- Lerp toward target value
 		local diff = targetDisplay - smoothedHungerDisplay
 		smoothedHungerDisplay = smoothedHungerDisplay + diff * math.min(1, HUNGER_DISPLAY_LERP_SPEED * elapsed)
 	end
@@ -1801,10 +1729,10 @@ local function UpdateHungerMeter(elapsed)
 	-- This matches the inverted bar display where full bar = 0% hunger
 	local percentText
 	if displayMode == "vial" then
-	-- Vial mode: just the number (no % symbol)
+		-- Vial mode: just the number (no % symbol)
 		percentText = string.format("%.0f", displayValue)
 	else
-	-- Bar mode: integer percentage (round to nearest)
+		-- Bar mode: integer percentage (round to nearest)
 		percentText = string.format("%.0f%%", displayValue)
 	end
 	-- Apply text based on hideVialText setting
@@ -1841,7 +1769,7 @@ local function UpdateHungerMeter(elapsed)
 	-- Track hunger crossing 0.1 intervals for pulse effect
 	local currentTenth = math.floor(hunger * 10)
 	if currentTenth > lastHungerTenth and not isPaused and not isDecaying and not hasWellFed then
-	-- Hunger increased past a 0.1 threshold - trigger pulse
+		-- Hunger increased past a 0.1 threshold - trigger pulse
 		hungerGlowPulseTimer = HUNGER_PULSE_DURATION
 	end
 	lastHungerTenth = currentTenth
@@ -1860,11 +1788,11 @@ local function UpdateHungerMeter(elapsed)
 			targetAlpha = 0.7
 			glowType = "blue"
 		elseif hasWellFed and not isDecaying then
-		-- Well Fed without active eating - gold glow (locked state)
+			-- Well Fed without active eating - gold glow (locked state)
 			targetAlpha = 0.9
 			glowType = "gold"
 		elseif isDecaying then
-		-- Actively eating/recovering - green glow
+			-- Actively eating/recovering - green glow
 			targetAlpha = 1.0
 			glowType = "green"
 		elseif hunger >= 75 then
@@ -1904,7 +1832,7 @@ local function UpdateHungerMeter(elapsed)
 			hungerMeter.glowGold:SetAlpha(glowType == "gold" and alpha or 0)
 		end
 	else
-	-- BAR MODE: Use atlas glow system
+		-- BAR MODE: Use atlas glow system
 		local glow = hungerMeter.glow
 		if not glow then
 			return
@@ -1915,12 +1843,12 @@ local function UpdateHungerMeter(elapsed)
 			glow.targetAlpha = 0.7
 			glow.targetSize = GLOW_SIZE_PAUSED
 		elseif hasWellFed and not isDecaying then
-		-- Well Fed without active eating - gold glow (locked state)
+			-- Well Fed without active eating - gold glow (locked state)
 			SetGlowColor(glow, 1.0, 0.85, 0.2, false) -- Gold color
 			glow.targetAlpha = 0.9
 			glow.targetSize = GLOW_SIZE
 		elseif isDecaying then
-		-- Actively eating/recovering - green glow
+			-- Actively eating/recovering - green glow
 			SetGlowColor(glow, GLOW_GREEN.r, GLOW_GREEN.g, GLOW_GREEN.b, false)
 			glow.targetAlpha = 1.0
 			glow.targetSize = GLOW_SIZE
@@ -1958,10 +1886,10 @@ local function UpdateHungerMeter(elapsed)
 
 		-- Size update: snap immediately to paused size, interpolate others
 		if glow.targetSize < 0 then
-		-- Paused state: snap immediately to avoid large glow flash
+			-- Paused state: snap immediately to avoid large glow flash
 			glow.currentSize = glow.targetSize
 		else
-		-- Normal state: smooth interpolation
+			-- Normal state: smooth interpolation
 			local sizeDiff = glow.targetSize - glow.currentSize
 			if math.abs(sizeDiff) < 0.5 then
 				glow.currentSize = glow.targetSize
@@ -1975,7 +1903,7 @@ end
 
 -- Setup hunger meter tooltip
 local function SetupHungerTooltip(meter)
--- Use hitbox for vial meters, otherwise use meter itself
+	-- Use hitbox for vial meters, otherwise use meter itself
 	local tooltipTarget = meter.hitbox or meter
 	tooltipTarget:SetScript("OnEnter", function(self)
 		local tooltipMode = CC.GetSetting and CC.GetSetting("tooltipDisplayMode") or "detailed"
@@ -2090,7 +2018,7 @@ local VIAL_FRAME_HEIGHT = (VIAL_SIZE_BASE + 90) * VIAL_SCALE -- Frame height (11
 
 -- Create a vial-style meter (vertical potion bottle - styled like constitution orb)
 local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fillTexturePath)
-	local meter = CreateFrame("Frame", "CozyCamps" .. name .. "VialMeter", parent)
+	local meter = CreateFrame("Frame", "CozierCamps" .. name .. "VialMeter", parent)
 	meter:SetSize(VIAL_FRAME_WIDTH, VIAL_FRAME_HEIGHT) -- Use pre-calculated scaled frame size
 	meter:SetPoint("LEFT", parent, "LEFT", xOffset, 0)
 
@@ -2103,11 +2031,11 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 	local GLOW_Y_OFFSET = VIAL_Y_OFFSET -- Aligned with fill (no extra offset)
 
 	-- Glow size - use CircleGlow atlas for all (it works and scales well)
-	local GLOW_SIZE = VIAL_SIZE * 1.5 -- Scale glow to cover the orb nicely
+	local VIAL_GLOW_SIZE = VIAL_SIZE * 1.5 -- Scale glow to cover the orb nicely
 
 	-- Green glow (positive/improving) - CircleGlow desaturated and tinted bright green
 	meter.glowGreen = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 1)
-	meter.glowGreen:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowGreen:SetSize(VIAL_GLOW_SIZE, VIAL_GLOW_SIZE)
 	meter.glowGreen:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
 	meter.glowGreen:SetAtlas("ChallengeMode-Runes-CircleGlow")
 	meter.glowGreen:SetDesaturated(true) -- Remove blue, make it grayscale
@@ -2117,7 +2045,7 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 
 	-- Orange glow (negative/declining) - CircleGlow desaturated and tinted orange
 	meter.glowOrange = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 2)
-	meter.glowOrange:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowOrange:SetSize(VIAL_GLOW_SIZE, VIAL_GLOW_SIZE)
 	meter.glowOrange:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
 	meter.glowOrange:SetAtlas("ChallengeMode-Runes-CircleGlow")
 	meter.glowOrange:SetDesaturated(true) -- Remove blue, make it grayscale
@@ -2127,7 +2055,7 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 
 	-- Blue glow (paused) - CircleGlow (natural blue, no tint needed)
 	meter.glowBlue = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 3)
-	meter.glowBlue:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowBlue:SetSize(VIAL_GLOW_SIZE, VIAL_GLOW_SIZE)
 	meter.glowBlue:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
 	meter.glowBlue:SetAtlas("ChallengeMode-Runes-CircleGlow")
 	meter.glowBlue:SetBlendMode("ADD")
@@ -2135,7 +2063,7 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 
 	-- Gold glow (Well Fed/locked state) - CircleGlow desaturated and tinted gold
 	meter.glowGold = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 4)
-	meter.glowGold:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowGold:SetSize(VIAL_GLOW_SIZE, VIAL_GLOW_SIZE)
 	meter.glowGold:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
 	meter.glowGold:SetAtlas("ChallengeMode-Runes-CircleGlow")
 	meter.glowGold:SetDesaturated(true)
@@ -2162,7 +2090,7 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 	meter.orbBg = meter:CreateTexture(nil, "BACKGROUND", nil, 1)
 	meter.orbBg:SetSize(ORB_VISUAL_SIZE, ORB_VISUAL_SIZE)
 	meter.orbBg:SetPoint("CENTER", 0, VIAL_Y_OFFSET)
-	meter.orbBg:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\globered.png")
+	meter.orbBg:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\globered.png")
 	meter.orbBg:SetVertexColor(0.1, 0.1, 0.1, 0.9)
 
 	-- Fill bar (vertical StatusBar) - use custom fill texture per meter type
@@ -2172,7 +2100,7 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 	meter.fillBar:SetOrientation("VERTICAL")
 	meter.fillBar:SetMinMaxValues(0, 100)
 	meter.fillBar:SetValue(0)
-	local fillTex = fillTexturePath or "Interface\\AddOns\\CozyCamps\\assets\\globetextured.png"
+	local fillTex = fillTexturePath or "Interface\\AddOns\\CozierCamps\\assets\\globetextured.png"
 	meter.fillBar:SetStatusBarTexture(fillTex)
 	meter.fillBar:SetStatusBarColor(color.r, color.g, color.b, 0.95)
 	meter.fillBar:SetFrameLevel(meter:GetFrameLevel() + 1)
@@ -2204,7 +2132,7 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 
 	-- Create shadow texts (multiple offsets for thick shadow like constitution orb)
 	meter.percentShadows = {}
-	local shadowOffsets = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {1, -1}, {-1, 1}, {1, 1}}
+	local shadowOffsets = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }, { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }
 	local fontPath = GetBarFont()
 	local fontSize = 10 * VIAL_SCALE -- Scale font size too
 	for _, offset in ipairs(shadowOffsets) do
@@ -2249,10 +2177,10 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 
 	-- Dragging support (on hitbox)
 	meter.hitbox:RegisterForDrag("LeftButton")
-	meter.hitbox:SetScript("OnDragStart", function(self)
+	meter.hitbox:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter.hitbox:SetScript("OnDragStop", function(self)
+	meter.hitbox:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 			-- Save absolute screen coordinates of top-left corner for consistent placement
@@ -2272,10 +2200,10 @@ local function CreateVialMeter(name, parent, xOffset, color, vialTexturePath, fi
 	-- Also enable mouse on parent for fallback
 	meter:EnableMouse(true)
 	meter:RegisterForDrag("LeftButton")
-	meter:SetScript("OnDragStart", function(self)
+	meter:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter:SetScript("OnDragStop", function(self)
+	meter:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 		end
@@ -2286,7 +2214,7 @@ end
 
 -- Create temperature meter (bidirectional, center-starting)
 local function CreateTemperatureMeter(parent, yOffset)
-	local meter = CreateFrame("Frame", "CozyCampsTemperatureMeter", parent, "BackdropTemplate")
+	local meter = CreateFrame("Frame", "CozierCampsTemperatureMeter", parent, "BackdropTemplate")
 	meter:SetSize(TEMP_METER_WIDTH, METER_HEIGHT)
 	meter:SetPoint("TOP", parent, "TOP", 0, yOffset)
 
@@ -2345,7 +2273,7 @@ local function CreateTemperatureMeter(parent, yOffset)
 
 	-- Cold icon on the left side (10% smaller)
 	local coldIconSize = ICON_SIZE * 0.9
-	local coldIcon = "Interface\\AddOns\\CozyCamps\\assets\\coldicon.blp"
+	local coldIcon = "Interface\\AddOns\\CozierCamps\\assets\\coldicon.blp"
 	meter.coldIcon = meter:CreateTexture(nil, "OVERLAY", nil, 7)
 	meter.coldIcon:SetSize(coldIconSize, coldIconSize)
 	meter.coldIcon:SetPoint("LEFT", meter, "LEFT", METER_PADDING + 2, 0)
@@ -2355,7 +2283,7 @@ local function CreateTemperatureMeter(parent, yOffset)
 
 	-- Fire icon on the right side (21% larger - increased by 10%)
 	local fireIconSize = ICON_SIZE * 1.21
-	local fireIcon = "Interface\\AddOns\\CozyCamps\\assets\\fireicon.blp"
+	local fireIcon = "Interface\\AddOns\\CozierCamps\\assets\\fireicon.blp"
 	meter.fireIcon = meter:CreateTexture(nil, "OVERLAY", nil, 7)
 	meter.fireIcon:SetSize(fireIconSize, fireIconSize)
 	meter.fireIcon:SetPoint("RIGHT", meter, "RIGHT", -METER_PADDING - 2, 0)
@@ -2420,10 +2348,10 @@ local function CreateTemperatureMeter(parent, yOffset)
 	-- Enable mouse for tooltip and drag forwarding
 	meter:EnableMouse(true)
 	meter:RegisterForDrag("LeftButton")
-	meter:SetScript("OnDragStart", function(self)
+	meter:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter:SetScript("OnDragStop", function(self)
+	meter:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 			-- Save absolute screen coordinates of top-left corner for consistent placement
@@ -2453,10 +2381,10 @@ local function CreateTemperatureMeter(parent, yOffset)
 
 	-- Dragging support (on hitbox)
 	meter.hitbox:RegisterForDrag("LeftButton")
-	meter.hitbox:SetScript("OnDragStart", function(self)
+	meter.hitbox:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter.hitbox:SetScript("OnDragStop", function(self)
+	meter.hitbox:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 			-- Save absolute screen coordinates of top-left corner for consistent placement
@@ -2560,7 +2488,7 @@ local function SetupThirstTooltip(meter)
 		if activity then
 			local actR, actG, actB = 0.7, 0.7, 0.7
 			if activity == "Drinking" or activity == "Refreshed" or activity == "Resting (Refreshed)" or activity ==
-			"Recovering" or activity == "Swimming" or activity == "In Rain" then
+					"Recovering" or activity == "Swimming" or activity == "In Rain" then
 				actR, actG, actB = 0.2, 1.0, 0.3
 			elseif activity == "In combat" then
 				actR, actG, actB = 1.0, 0.4, 0.4
@@ -2621,7 +2549,7 @@ end
 
 -- Setup temperature meter tooltip
 local function SetupTemperatureTooltip(meter)
--- Use hitbox for vial meters, otherwise use meter itself
+	-- Use hitbox for vial meters, otherwise use meter itself
 	local tooltipTarget = meter.hitbox or meter
 	tooltipTarget:SetScript("OnEnter", function(self)
 		local tooltipMode = CC.GetSetting and CC.GetSetting("tooltipDisplayMode") or "detailed"
@@ -2845,7 +2773,7 @@ CalculateConstitution = function()
 	end
 
 	if temperatureEnabled then
-	-- Temperature is bidirectional: both extremes hurt constitution
+		-- Temperature is bidirectional: both extremes hurt constitution
 		local temp = CC.GetTemperature and CC.GetTemperature() or 0
 		local normalizedWeight = CONSTITUTION_WEIGHTS.temperature / totalWeight
 		local contribution = (math.abs(temp) / 100) * normalizedWeight * 100
@@ -2898,7 +2826,7 @@ end
 
 -- Create constitution meter
 local function CreateConstitutionMeter(parent)
-	local meter = CreateFrame("Frame", "CozyCampsConstitutionMeter", parent)
+	local meter = CreateFrame("Frame", "CozierCampsConstitutionMeter", parent)
 	-- Extra height for potion cork/neck extending above, plus glow space
 	meter:SetSize(CONSTITUTION_ORB_SIZE + 60, CONSTITUTION_ORB_SIZE + 90)
 	meter:SetFrameStrata("MEDIUM")
@@ -2912,31 +2840,31 @@ local function CreateConstitutionMeter(parent)
 
 	-- Glow Y offset for constitution orb
 	local GLOW_Y_OFFSET = -7
-	local GLOW_SIZE = CONSTITUTION_ORB_SIZE + 80 -- Base glow size (increased for visibility)
+	local CONST_GLOW_SIZE = CONSTITUTION_ORB_SIZE + 80 -- Base glow size (increased for visibility)
 
 	-- Green glow (positive/improving) - bright green tint
 	meter.glowGreen = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 1)
-	meter.glowGreen:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowGreen:SetSize(CONST_GLOW_SIZE, CONST_GLOW_SIZE)
 	meter.glowGreen:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
-	meter.glowGreen:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\globewhite.png")
+	meter.glowGreen:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\globewhite.png")
 	meter.glowGreen:SetBlendMode("ADD")
 	meter.glowGreen:SetVertexColor(0.4, 1.0, 0.6, 1) -- Doubled brightness
 	meter.glowGreen:SetAlpha(0)
 
 	-- Orange glow (negative/declining) - orange tint
 	meter.glowOrange = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 2)
-	meter.glowOrange:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowOrange:SetSize(CONST_GLOW_SIZE, CONST_GLOW_SIZE)
 	meter.glowOrange:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
-	meter.glowOrange:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\globewhite.png")
+	meter.glowOrange:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\globewhite.png")
 	meter.glowOrange:SetBlendMode("ADD")
 	meter.glowOrange:SetVertexColor(1.0, 0.4, 0.05, 1)
 	meter.glowOrange:SetAlpha(0)
 
 	-- Blue glow (paused state) - blue tint
 	meter.glowBlue = meter.glowFrame:CreateTexture(nil, "ARTWORK", nil, 3)
-	meter.glowBlue:SetSize(GLOW_SIZE, GLOW_SIZE)
+	meter.glowBlue:SetSize(CONST_GLOW_SIZE, CONST_GLOW_SIZE)
 	meter.glowBlue:SetPoint("CENTER", 0, GLOW_Y_OFFSET)
-	meter.glowBlue:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\globewhite.png")
+	meter.glowBlue:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\globewhite.png")
 	meter.glowBlue:SetBlendMode("ADD")
 	meter.glowBlue:SetVertexColor(0.3, 0.5, 1.0, 1)
 	meter.glowBlue:SetAlpha(0)
@@ -2955,14 +2883,14 @@ local function CreateConstitutionMeter(parent)
 	meter.orbBg = meter:CreateTexture(nil, "BACKGROUND", nil, 1)
 	meter.orbBg:SetSize(ORB_VISUAL_SIZE, ORB_VISUAL_SIZE)
 	meter.orbBg:SetPoint("CENTER", 0, ORB_Y_OFFSET)
-	meter.orbBg:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\globewhite.png")
+	meter.orbBg:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\globewhite.png")
 	meter.orbBg:SetVertexColor(0.15, 0.05, 0.05, 1) -- Very dark red background
 
 	-- Fill StatusBar with vertical orientation (blood rising/falling effect)
 	meter.fillBar = CreateFrame("StatusBar", nil, meter)
 	meter.fillBar:SetSize(ORB_VISUAL_SIZE, ORB_VISUAL_SIZE)
 	meter.fillBar:SetPoint("CENTER", 0, ORB_Y_OFFSET)
-	meter.fillBar:SetStatusBarTexture("Interface\\AddOns\\CozyCamps\\assets\\globetextured.png")
+	meter.fillBar:SetStatusBarTexture("Interface\\AddOns\\CozierCamps\\assets\\globetextured.png")
 	meter.fillBar:SetOrientation("VERTICAL")
 	meter.fillBar:SetMinMaxValues(0, 100)
 	meter.fillBar:SetValue(100)
@@ -2972,7 +2900,7 @@ local function CreateConstitutionMeter(parent)
 	meter.border = meter:CreateTexture(nil, "OVERLAY", nil, 5)
 	meter.border:SetSize(CONSTITUTION_ORB_SIZE + 2, CONSTITUTION_ORB_SIZE + 2)
 	meter.border:SetPoint("CENTER")
-	meter.border:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\globeborder.png")
+	meter.border:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\globeborder.png")
 	meter.border:SetVertexColor(0, 0, 0, 1) -- Black border
 	meter.border:Hide() -- Hidden - potion overlay provides visual framing
 
@@ -2983,7 +2911,7 @@ local function CreateConstitutionMeter(parent)
 	meter.potionOverlay:SetSize(POTION_DISPLAY_SIZE, POTION_DISPLAY_SIZE)
 	-- Offset upward so the round glass body aligns with the orb center
 	meter.potionOverlay:SetPoint("CENTER", 0, POTION_DISPLAY_SIZE * 0.10)
-	meter.potionOverlay:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\potion.png")
+	meter.potionOverlay:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\potion.png")
 
 	-- Constitution value text in center with shadow effect
 	-- Create a text container frame above the fillBar to ensure visibility
@@ -2999,12 +2927,12 @@ local function CreateConstitutionMeter(parent)
 	-- Anchor to the percent text itself so it's always centered on it
 	meter.potionHeart = meter.textFrame:CreateTexture(nil, "BACKGROUND")
 	meter.potionHeart:SetSize(160, 160) -- 1.5x reduced from 240
-	meter.potionHeart:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\potionheart.png")
+	meter.potionHeart:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\potionheart.png")
 	-- Will anchor after percent text is created
 
 	-- Create shadow texts first (multiple offsets for thick shadow)
 	meter.percentShadows = {}
-	local shadowOffsets = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {1, -1}, {-1, 1}, {1, 1}}
+	local shadowOffsets = { { -1, 0 }, { 1, 0 }, { 0, -1 }, { 0, 1 }, { -1, -1 }, { 1, -1 }, { -1, 1 }, { 1, 1 } }
 	for _, offset in ipairs(shadowOffsets) do
 		local shadow = meter.textFrame:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 		shadow:SetPoint("CENTER", offset[1], offset[2] + TEXT_Y_OFFSET)
@@ -3032,10 +2960,10 @@ local function CreateConstitutionMeter(parent)
 
 	-- Forward drag events to parent (metersContainer) so orb moves with meters
 	meter:RegisterForDrag("LeftButton")
-	meter:SetScript("OnDragStart", function(self)
+	meter:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
-	meter:SetScript("OnDragStop", function(self)
+	meter:SetScript("OnDragStop", function()
 		if metersContainer then
 			metersContainer:StopMovingOrSizing()
 			-- Save absolute screen coordinates of top-left corner for consistent placement
@@ -3061,7 +2989,7 @@ local function UpdateConstitutionMeter(elapsed)
 		return
 	end
 
-	local constitution, contributions = CalculateConstitution()
+	local constitution = CalculateConstitution()
 	if not constitution then
 		constitutionMeter:Hide()
 		return
@@ -3072,11 +3000,11 @@ local function UpdateConstitutionMeter(elapsed)
 	-- Simple change detection - flash glow on any change
 	local delta = constitution - lastConstitution
 	if delta < -0.01 then
-	-- Constitution went down - orange glow
+		-- Constitution went down - orange glow
 		constitutionGlowState = "orange"
 		constitutionGlowTimer = CONSTITUTION_GLOW_DURATION
 	elseif delta > 0.01 then
-	-- Constitution went up - green glow
+		-- Constitution went up - green glow
 		constitutionGlowState = "green"
 		constitutionGlowTimer = CONSTITUTION_GLOW_DURATION
 	end
@@ -3143,16 +3071,16 @@ local function UpdateConstitutionMeter(elapsed)
 
 	-- Apply glow based on effective state
 	if effectiveGlowState == "blue" then
-	-- Paused - show blue glow
+		-- Paused - show blue glow
 		constitutionMeter.glowTargetAlpha = 0.7
 	elseif effectiveGlowState == "green" then
-	-- Improving - show bright green glow
+		-- Improving - show bright green glow
 		constitutionMeter.glowTargetAlpha = MAX_GLOW_ALPHA
 	elseif effectiveGlowState == "orange" then
-	-- Declining - show bright orange glow
+		-- Declining - show bright orange glow
 		constitutionMeter.glowTargetAlpha = MAX_GLOW_ALPHA
 	else
-	-- Stable - no glow
+		-- Stable - no glow
 		constitutionMeter.glowTargetAlpha = 0
 	end
 
@@ -3196,7 +3124,7 @@ local function UpdateConstitutionMeter(elapsed)
 			constitutionMeter.glowOrange:SetAlpha(math.min(1, glowAlpha * criticalIntensity))
 			constitutionMeter.glowBlue:SetAlpha(0)
 		else
-		-- No glow (stable)
+			-- No glow (stable)
 			constitutionMeter.glowGreen:SetAlpha(0)
 			constitutionMeter.glowOrange:SetAlpha(0)
 			constitutionMeter.glowBlue:SetAlpha(0)
@@ -3213,7 +3141,7 @@ local function UpdateConstitutionBarMeter(elapsed)
 		return
 	end
 
-	local constitution, contributions = CalculateConstitution()
+	local constitution = CalculateConstitution()
 	if not constitution then
 		constitutionBarMeter:Hide()
 		return
@@ -3224,14 +3152,14 @@ local function UpdateConstitutionBarMeter(elapsed)
 	-- Update glow state
 	-- (Only if orb meter isn't visible, to avoid double-calculation)
 	if not constitutionMeter or not constitutionMeter:IsShown() then
-	-- Simple change detection - flash glow on any change
+		-- Simple change detection - flash glow on any change
 		local delta = constitution - lastConstitution
 		if delta < -0.01 then
-		-- Constitution went down - orange glow
+			-- Constitution went down - orange glow
 			constitutionGlowState = "orange"
 			constitutionGlowTimer = CONSTITUTION_GLOW_DURATION
 		elseif delta > 0.01 then
-		-- Constitution went up - green glow
+			-- Constitution went up - green glow
 			constitutionGlowState = "green"
 			constitutionGlowTimer = CONSTITUTION_GLOW_DURATION
 		end
@@ -3272,25 +3200,25 @@ local function UpdateConstitutionBarMeter(elapsed)
 	-- Bar always stays green to match vial mode
 	local glow = constitutionBarMeter.glow
 	constitutionBarMeter.bar:SetStatusBarColor(CONSTITUTION_BAR_COLOR.r, CONSTITUTION_BAR_COLOR.g,
-		CONSTITUTION_BAR_COLOR.b)
+			CONSTITUTION_BAR_COLOR.b)
 
 	if effectiveGlowState == "blue" then
-	-- Paused - blue glow
+		-- Paused - blue glow
 		SetGlowColor(glow, GLOW_GREEN.r, GLOW_GREEN.g, GLOW_GREEN.b, true) -- isPaused=true triggers blue
 		glow.targetAlpha = 0.7
 		glow.targetSize = GLOW_SIZE_PAUSED
 	elseif effectiveGlowState == "green" then
-	-- Improving - bright green glow
+		-- Improving - bright green glow
 		SetGlowColor(glow, GLOW_GREEN.r, GLOW_GREEN.g, GLOW_GREEN.b, false)
 		glow.targetAlpha = 1.0
 		glow.targetSize = GLOW_SIZE
 	elseif effectiveGlowState == "orange" then
-	-- Declining - bright orange glow (but bar stays green)
+		-- Declining - bright orange glow (but bar stays green)
 		SetGlowColor(glow, 1.0, 0.4, 0.1, false)
 		glow.targetAlpha = 1.0
 		glow.targetSize = GLOW_SIZE
 	else
-	-- Stable - no glow
+		-- Stable - no glow
 		glow.targetAlpha = 0
 		glow.targetSize = GLOW_SIZE
 	end
@@ -3324,10 +3252,10 @@ local function UpdateConstitutionBarMeter(elapsed)
 
 	-- Size update: snap immediately to paused size, interpolate others
 	if glow.targetSize < 0 then
-	-- Paused state: snap immediately to avoid large glow flash
+		-- Paused state: snap immediately to avoid large glow flash
 		glow.currentSize = glow.targetSize
 	else
-	-- Normal state: smooth interpolation
+		-- Normal state: smooth interpolation
 		local sizeDiff = glow.targetSize - glow.currentSize
 		if math.abs(sizeDiff) < 0.5 then
 			glow.currentSize = glow.targetSize
@@ -3354,7 +3282,6 @@ local function UpdateTemperatureMeter(elapsed)
 	local actualWidth = temperatureMeter:GetWidth()
 	local barWidth = actualWidth - (METER_PADDING * 2)
 	local halfWidth = barWidth / 2
-	local barHeight = METER_HEIGHT - (METER_PADDING * 2)
 
 	-- Calculate fill width and position based on temperature
 	local fillPercent = math.abs(temp) / 100
@@ -3364,7 +3291,7 @@ local function UpdateTemperatureMeter(elapsed)
 	local barR, barG, barB = 0.5, 0.5, 0.5
 
 	if temp < 0 then
-	-- Cold - fill from center to left
+		-- Cold - fill from center to left
 		temperatureMeter.fillBar:ClearAllPoints()
 		temperatureMeter.fillBar:SetPoint("RIGHT", temperatureMeter, "CENTER", 0, 0)
 		temperatureMeter.fillBar:SetWidth(math.max(1, fillWidth))
@@ -3377,7 +3304,7 @@ local function UpdateTemperatureMeter(elapsed)
 		temperatureMeter.fillBar:SetVertexColor(barR, barG, barB, 1)
 
 	elseif temp > 0 then
-	-- Hot - fill from center to right
+		-- Hot - fill from center to right
 		temperatureMeter.fillBar:ClearAllPoints()
 		temperatureMeter.fillBar:SetPoint("LEFT", temperatureMeter, "CENTER", 0, 0)
 		temperatureMeter.fillBar:SetWidth(math.max(1, fillWidth))
@@ -3390,7 +3317,7 @@ local function UpdateTemperatureMeter(elapsed)
 		temperatureMeter.fillBar:SetVertexColor(barR, barG, barB, 1)
 
 	else
-	-- Neutral - no fill
+		-- Neutral - no fill
 		temperatureMeter.fillBar:SetWidth(1)
 		temperatureMeter.fillBar:SetVertexColor(0.5, 0.5, 0.5, 0.5)
 		barR, barG, barB = 0.7, 0.7, 0.7
@@ -3416,28 +3343,28 @@ local function UpdateTemperatureMeter(elapsed)
 	-- Only show white centered spark when actually near 0 (balanced state)
 	-- NOT when at zone equilibrium far from 0
 	if isBalanced then
-	-- Balanced (near 0 with counter-forces) - use Blizzard Spark, neutral white
+		-- Balanced (near 0 with counter-forces) - use Blizzard Spark, neutral white
 		temperatureMeter.arrow:SetTexture(130877) -- Blizzard Spark
 		temperatureMeter.arrow:SetVertexColor(1, 1, 1, 1) -- Neutral white
 		temperatureMeter.lastTempSide = 0 -- Reset side tracking
 		-- Force arrow to center when balanced (near 0)
 		arrowOffset = 0
 	elseif math.abs(temp) < 2 and trend == 0 then
-	-- Very close to 0 and stable - use neutral spark to avoid flickering
+		-- Very close to 0 and stable - use neutral spark to avoid flickering
 		temperatureMeter.arrow:SetTexture(130877) -- Blizzard Spark
 		temperatureMeter.arrow:SetVertexColor(1, 1, 1, 1) -- Neutral white
 	elseif temp > 3 or (temp >= 0 and temperatureMeter.lastTempSide >= 0 and temp > -3) then
-	-- Clearly hot, or staying on hot side with hysteresis
+		-- Clearly hot, or staying on hot side with hysteresis
 		temperatureMeter.arrow:SetAtlas("Legionfall_BarSpark") -- Hot/orange spark (moving)
 		temperatureMeter.arrow:SetVertexColor(barR, barG, barB, 1) -- Match bar color
 		temperatureMeter.lastTempSide = 1
 	elseif temp < -3 or (temp < 0 and temperatureMeter.lastTempSide <= 0 and temp < 3) then
-	-- Clearly cold, or staying on cold side with hysteresis
+		-- Clearly cold, or staying on cold side with hysteresis
 		temperatureMeter.arrow:SetAtlas("bonusobjectives-bar-spark") -- Cold/blue spark (moving)
 		temperatureMeter.arrow:SetVertexColor(barR, barG, barB, 1) -- Match bar color
 		temperatureMeter.lastTempSide = -1
 	else
-	-- Fallback to neutral when in ambiguous zone
+		-- Fallback to neutral when in ambiguous zone
 		temperatureMeter.arrow:SetTexture(130877)
 		temperatureMeter.arrow:SetVertexColor(1, 1, 1, 1)
 	end
@@ -3473,18 +3400,18 @@ local function UpdateTemperatureMeter(elapsed)
 	local glowIntensity = math.min(1.0, math.abs(temp) / 50)
 
 	if isPaused then
-	-- Paused (flight, dungeon, raid) - blue glow
+		-- Paused (flight, dungeon, raid) - blue glow
 		coldGlow.texture:SetVertexColor(1, 1, 1) -- Native atlas color (blue/yellow)
 		coldGlow.targetAlpha = 0.7
 	elseif isBalanced then
-	-- Balanced (reached equilibrium near 0, stable) - NO glow, just equilibrium spark
-	-- All glows stay at 0
+		-- Balanced (reached equilibrium near 0, stable) - NO glow, just equilibrium spark
+		-- All glows stay at 0
 	elseif trend < 0 then
-	-- Getting colder - blue glow (even if near fire warming up from cold)
+		-- Getting colder - blue glow (even if near fire warming up from cold)
 		coldGlow.texture:SetVertexColor(0.3, 0.5, 1.0)
 		coldGlow.targetAlpha = math.max(0.3, glowIntensity) -- Minimum glow while moving
 	elseif trend > 0 then
-	-- Getting warmer - orange glow (e.g., warming up by fire when cold)
+		-- Getting warmer - orange glow (e.g., warming up by fire when cold)
 		hotGlow.targetAlpha = math.max(0.3, glowIntensity) -- Minimum glow while moving
 	end
 	-- trend == 0 and not balanced = no glow (at natural equilibrium or truly stable)
@@ -3527,7 +3454,7 @@ local function UpdateTemperatureMeter(elapsed)
 	local BREATHE_SPEED = 1.0 -- Slow, gentle breathing (1 cycle per second)
 
 	if trend < 0 and not isPaused then
-	-- Getting colder - cold icon breathes (brightness pulse)
+		-- Getting colder - cold icon breathes (brightness pulse)
 		temperatureMeter.coldIconPulse = (temperatureMeter.coldIconPulse or 0) + elapsed * BREATHE_SPEED
 		local breathe = 0.7 + 0.3 * (0.5 + 0.5 * math.sin(temperatureMeter.coldIconPulse * math.pi * 2))
 		temperatureMeter.coldIcon:SetVertexColor(0.5 * breathe + 0.3, 0.75 * breathe + 0.2, 1.0, 1)
@@ -3536,7 +3463,7 @@ local function UpdateTemperatureMeter(elapsed)
 	end
 
 	if trend > 0 and not isPaused then
-	-- Getting warmer - fire icon breathes (brightness pulse)
+		-- Getting warmer - fire icon breathes (brightness pulse)
 		temperatureMeter.fireIconPulse = (temperatureMeter.fireIconPulse or 0) + elapsed * BREATHE_SPEED
 		local breathe = 0.7 + 0.3 * (0.5 + 0.5 * math.sin(temperatureMeter.fireIconPulse * math.pi * 2))
 		temperatureMeter.fireIcon:SetVertexColor(1.0, 0.6 * breathe + 0.2, 0.3 * breathe + 0.1, 1)
@@ -3561,32 +3488,32 @@ local WEATHER_GLOW_ATLASES = {
 	[WEATHER_TYPE_RAIN] = {
 		circleGlow = "ChallengeMode-Runes-CircleGlow",
 		relicGlow = "Relic-Water-TraitGlow",
-		circleColor = {0.4, 0.6, 1.0}, -- Blue
-		relicColor = {0.5, 0.7, 1.0}, -- Light blue
+		circleColor = { 0.4, 0.6, 1.0 }, -- Blue
+		relicColor = { 0.5, 0.7, 1.0 }, -- Light blue
 		circleSize = WEATHER_BUTTON_SIZE, -- Inner glow smaller
 		relicSize = WEATHER_BUTTON_SIZE + 16 -- Outer relic larger
 	},
 	[WEATHER_TYPE_SNOW] = {
 		circleGlow = "Relic-Rankselected-circle",
 		relicGlow = "Relic-Frost-TraitGlow",
-		circleColor = {0.6, 0.8, 1.0}, -- Ice blue
-		relicColor = {0.7, 0.9, 1.0}, -- Frost white
+		circleColor = { 0.6, 0.8, 1.0 }, -- Ice blue
+		relicColor = { 0.7, 0.9, 1.0 }, -- Frost white
 		circleSize = WEATHER_BUTTON_SIZE + 6, -- Inner glow smaller
 		relicSize = WEATHER_BUTTON_SIZE + 16 -- Outer relic larger
 	},
 	[WEATHER_TYPE_DUST] = {
 		circleGlow = "Neutraltrait-Glow",
 		relicGlow = "Relic-Fire-TraitGlow",
-		circleColor = {1.0, 0.7, 0.3}, -- Orange
-		relicColor = {1.0, 0.5, 0.2}, -- Fire orange
+		circleColor = { 1.0, 0.7, 0.3 }, -- Orange
+		relicColor = { 1.0, 0.5, 0.2 }, -- Fire orange
 		circleSize = WEATHER_BUTTON_SIZE + 8, -- Inner glow smaller
 		relicSize = WEATHER_BUTTON_SIZE + 16 -- Outer relic larger
 	},
 	[WEATHER_TYPE_STORM] = {
 		circleGlow = "Relic-Arcane-TraitGlow",
 		relicGlow = "Relic-Arcane-TraitGlow",
-		circleColor = {0.6, 0.4, 1.0}, -- Purple/arcane
-		relicColor = {0.8, 0.5, 1.0}, -- Bright purple
+		circleColor = { 0.6, 0.4, 1.0 }, -- Purple/arcane
+		relicColor = { 0.8, 0.5, 1.0 }, -- Bright purple
 		circleSize = WEATHER_BUTTON_SIZE + 10, -- Inner glow
 		relicSize = WEATHER_BUTTON_SIZE + 18 -- Outer relic larger
 	}
@@ -3597,7 +3524,7 @@ local WEATHER_PAUSED_ATLAS = "ChallengeMode-KeystoneSlotFrameGlow"
 
 -- Create status icons row (Classic parity: icons above meters, independent of weather button)
 local function CreateStatusIconsRow(parent)
-	local row = CreateFrame("Frame", "CozyCampsStatusIconsRow", parent)
+	local row = CreateFrame("Frame", "CozierCampsStatusIconsRow", parent)
 	row:SetSize(100, STATUS_ROW_HEIGHT) -- Width will be adjusted in RepositionMeters
 
 	-- Wet status icon (left of center)
@@ -3605,7 +3532,7 @@ local function CreateStatusIconsRow(parent)
 	row.wetIcon = row:CreateTexture(nil, "ARTWORK")
 	row.wetIcon:SetSize(WET_ICON_SIZE, WET_ICON_SIZE)
 	row.wetIcon:SetPoint("CENTER", row, "CENTER", -30, 0)
-	row.wetIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\weticon.png")
+	row.wetIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\weticon.png")
 	row.wetIcon:SetAlpha(0)
 
 	local WET_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3643,7 +3570,7 @@ local function CreateStatusIconsRow(parent)
 		local minutes = math.floor(remaining / 60)
 		local seconds = math.floor(remaining % 60)
 		local timeStr = minutes > 0 and string.format("%d:%02d remaining", minutes, seconds) or
-		string.format("%d seconds remaining", seconds)
+				string.format("%d seconds remaining", seconds)
 		GameTooltip:AddLine(timeStr, 1, 1, 1)
 		GameTooltip:AddLine(" ")
 		local temp = CC.GetTemperature and CC.GetTemperature() or 0
@@ -3669,7 +3596,7 @@ local function CreateStatusIconsRow(parent)
 	row.swimmingIcon = row:CreateTexture(nil, "ARTWORK")
 	row.swimmingIcon:SetSize(SWIMMING_ICON_SIZE, SWIMMING_ICON_SIZE)
 	row.swimmingIcon:SetPoint("CENTER", row, "CENTER", -30, 0)
-	row.swimmingIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\swimmingicon.png")
+	row.swimmingIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\swimmingicon.png")
 	row.swimmingIcon:SetAlpha(0)
 
 	local SWIMMING_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3727,7 +3654,7 @@ local function CreateStatusIconsRow(parent)
 	row.bandageIcon = row:CreateTexture(nil, "ARTWORK")
 	row.bandageIcon:SetSize(BANDAGE_ICON_SIZE, BANDAGE_ICON_SIZE)
 	row.bandageIcon:SetPoint("CENTER", row, "CENTER", -30, 0)
-	row.bandageIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\bandageicon.png")
+	row.bandageIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\bandageicon.png")
 	row.bandageIcon:SetAlpha(0)
 
 	local BANDAGE_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3774,7 +3701,7 @@ local function CreateStatusIconsRow(parent)
 	row.potionIcon = row:CreateTexture(nil, "ARTWORK")
 	row.potionIcon:SetSize(POTION_ICON_SIZE, POTION_ICON_SIZE)
 	row.potionIcon:SetPoint("CENTER", row, "CENTER", -30, 0)
-	row.potionIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\potionicon.png")
+	row.potionIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\potionicon.png")
 	row.potionIcon:SetAlpha(0)
 
 	local POTION_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3821,7 +3748,7 @@ local function CreateStatusIconsRow(parent)
 	row.cozyIcon = row:CreateTexture(nil, "ARTWORK")
 	row.cozyIcon:SetSize(COZY_ICON_SIZE, COZY_ICON_SIZE)
 	row.cozyIcon:SetPoint("CENTER", row, "CENTER", 0, 0)
-	row.cozyIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\cozyicon.png")
+	row.cozyIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\cozyicon.png")
 	row.cozyIcon:SetAlpha(0)
 
 	local COZY_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3875,7 +3802,7 @@ local function CreateStatusIconsRow(parent)
 	row.restedIcon = row:CreateTexture(nil, "ARTWORK")
 	row.restedIcon:SetSize(RESTED_ICON_SIZE, RESTED_ICON_SIZE)
 	row.restedIcon:SetPoint("CENTER", row, "CENTER", 0, 0)
-	row.restedIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\restedicon.png")
+	row.restedIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\restedicon.png")
 	row.restedIcon:SetAlpha(0)
 
 	local RESTED_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3927,7 +3854,7 @@ local function CreateStatusIconsRow(parent)
 	row.wellFedIcon = row:CreateTexture(nil, "ARTWORK")
 	row.wellFedIcon:SetSize(WELLFED_ICON_SIZE, WELLFED_ICON_SIZE)
 	row.wellFedIcon:SetPoint("CENTER", row, "CENTER", 30, 0)
-	row.wellFedIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\wellfedicon.png")
+	row.wellFedIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\wellfedicon.png")
 	row.wellFedIcon:SetAlpha(0)
 
 	local WELLFED_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -3981,7 +3908,7 @@ local function CreateStatusIconsRow(parent)
 	row.combatIcon = row:CreateTexture(nil, "ARTWORK")
 	row.combatIcon:SetSize(COMBAT_ICON_SIZE, COMBAT_ICON_SIZE)
 	row.combatIcon:SetPoint("CENTER", row, "CENTER", 30, 0)
-	row.combatIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\combaticon.png")
+	row.combatIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\combaticon.png")
 	row.combatIcon:SetAlpha(0)
 
 	local COMBAT_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -4030,7 +3957,7 @@ local function CreateStatusIconsRow(parent)
 	row.alcoholIcon = row:CreateTexture(nil, "ARTWORK")
 	row.alcoholIcon:SetSize(ALCOHOL_ICON_SIZE, ALCOHOL_ICON_SIZE)
 	row.alcoholIcon:SetPoint("CENTER", row, "CENTER", 30, 0)
-	row.alcoholIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\alcoholicon.png")
+	row.alcoholIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\alcoholicon.png")
 	row.alcoholIcon:SetAlpha(0)
 
 	local ALCOHOL_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -4091,7 +4018,7 @@ local function CreateStatusIconsRow(parent)
 	row.manaIcon = row:CreateTexture(nil, "ARTWORK")
 	row.manaIcon:SetSize(MANA_ICON_SIZE, MANA_ICON_SIZE)
 	row.manaIcon:SetPoint("CENTER", row, "CENTER", -30, 0)
-	row.manaIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\manapotionicon.png")
+	row.manaIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\manapotionicon.png")
 	row.manaIcon:SetAlpha(0)
 
 	local MANA_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -4160,7 +4087,7 @@ local function CreateStatusIconsRow(parent)
 	row.constIcon = row:CreateTexture(nil, "ARTWORK")
 	row.constIcon:SetSize(CONST_ICON_SIZE, CONST_ICON_SIZE)
 	row.constIcon:SetPoint("CENTER", row, "CENTER", 30, 0)
-	row.constIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\constitutionicon.png")
+	row.constIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\constitutionicon.png")
 	row.constIcon:SetAlpha(0)
 
 	local CONST_GLOW_SIZE = STATUS_ICON_SIZE + 12
@@ -4274,7 +4201,7 @@ end
 
 -- Create weather toggle button (appears below temperature meter)
 local function CreateWeatherButton(parent)
-	local button = CreateFrame("Button", "CozyCampsWeatherButton", parent)
+	local button = CreateFrame("Button", "CozierCampsWeatherButton", parent)
 	button:SetSize(WEATHER_BUTTON_SIZE, WEATHER_BUTTON_SIZE)
 
 	-- Background (dark circle)
@@ -4295,7 +4222,7 @@ local function CreateWeatherButton(parent)
 	button.icon = button:CreateTexture(nil, "ARTWORK")
 	button.icon:SetSize(WEATHER_BUTTON_SIZE - 4, WEATHER_BUTTON_SIZE - 4)
 	button.icon:SetPoint("CENTER", 0, -1)
-	button.icon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\temperatureicon.blp")
+	button.icon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\temperatureicon.blp")
 	button.icon:SetVertexColor(1, 1, 1, 1)
 
 	-- Relic glow layer (above icon) - weather type specific
@@ -4330,15 +4257,12 @@ local function CreateWeatherButton(parent)
 	button.glow:SetBlendMode("ADD")
 	button.glow:SetAlpha(0)
 
-	-- Status icon size
-	local STATUS_ICON_SIZE = 18
-
 	-- Wet status icon (on cold side of temperature bar)
 	button.wetIcon = button:CreateTexture(nil, "ARTWORK")
 	button.wetIcon:SetSize(STATUS_ICON_SIZE, STATUS_ICON_SIZE)
 	-- Will be repositioned after temperature meter is created
 	button.wetIcon:SetPoint("CENTER", button, "LEFT", -20, -1)
-	button.wetIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\weticon.png")
+	button.wetIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\weticon.png")
 	button.wetIcon:SetAlpha(0)
 
 	-- Wet icon spinning glow (blue)
@@ -4378,7 +4302,7 @@ local function CreateWeatherButton(parent)
 		local minutes = math.floor(remaining / 60)
 		local seconds = math.floor(remaining % 60)
 		local timeStr = minutes > 0 and string.format("%d:%02d remaining", minutes, seconds) or
-		string.format("%d seconds remaining", seconds)
+				string.format("%d seconds remaining", seconds)
 		GameTooltip:AddLine(timeStr, 1, 1, 1)
 		GameTooltip:AddLine(" ")
 		local temp = CC.GetTemperature and CC.GetTemperature() or 0
@@ -4395,7 +4319,7 @@ local function CreateWeatherButton(parent)
 		end
 		GameTooltip:Show()
 	end)
-	button.wetHitbox:SetScript("OnLeave", function(self)
+	button.wetHitbox:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 
@@ -4404,7 +4328,7 @@ local function CreateWeatherButton(parent)
 	button.cozyIcon = button:CreateTexture(nil, "ARTWORK")
 	button.cozyIcon:SetSize(COZY_ICON_SIZE, COZY_ICON_SIZE)
 	button.cozyIcon:SetPoint("CENTER", button, "RIGHT", 20, -1)
-	button.cozyIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\cozyicon.png")
+	button.cozyIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\cozyicon.png")
 	button.cozyIcon:SetAlpha(0)
 
 	-- Cozy icon spinning glow (orange/yellow) - same size as wet glow
@@ -4451,7 +4375,7 @@ local function CreateWeatherButton(parent)
 		end
 		GameTooltip:Show()
 	end)
-	button.cozyHitbox:SetScript("OnLeave", function(self)
+	button.cozyHitbox:SetScript("OnLeave", function()
 		GameTooltip:Hide()
 	end)
 
@@ -4482,7 +4406,7 @@ local function CreateWeatherButton(parent)
 	button.relicPulsePhase = 0
 
 	-- Click handler
-	button:SetScript("OnClick", function(self)
+	button:SetScript("OnClick", function()
 		if CC.ToggleManualWeather then
 			local success = CC.ToggleManualWeather()
 			if success then
@@ -4576,15 +4500,6 @@ local function UpdateWeatherButton(elapsed)
 		weatherButton.cozyHitbox:EnableMouse(false)
 	end
 
-	-- Helper for smooth alpha transitions
-	local function LerpAlpha(current, target, speed)
-		local diff = target - current
-		if math.abs(diff) < 0.01 then
-			return target
-		end
-		return current + diff * math.min(1, speed * elapsed)
-	end
-
 	if not manualWeatherEnabled then
 		weatherButton:Hide()
 		return
@@ -4628,11 +4543,11 @@ local function UpdateWeatherButton(elapsed)
 	if glowConfig then
 		weatherButton.circleGlow:SetAtlas(glowConfig.circleGlow)
 		weatherButton.circleGlow:SetVertexColor(glowConfig.circleColor[1], glowConfig.circleColor[2],
-			glowConfig.circleColor[3], 1)
+				glowConfig.circleColor[3], 1)
 		weatherButton.circleGlow:SetSize(glowConfig.circleSize, glowConfig.circleSize)
 		weatherButton.relicGlow:SetAtlas(glowConfig.relicGlow)
 		weatherButton.relicGlow:SetVertexColor(glowConfig.relicColor[1], glowConfig.relicColor[2],
-			glowConfig.relicColor[3], 1)
+				glowConfig.relicColor[3], 1)
 		weatherButton.relicGlow:SetSize(glowConfig.relicSize, glowConfig.relicSize)
 	end
 
@@ -4643,12 +4558,12 @@ local function UpdateWeatherButton(elapsed)
 
 	if isActive then
 		if weatherButton.isPaused then
-		-- Paused state: show yellow paused glow instead of weather glows
+			-- Paused state: show yellow paused glow instead of weather glows
 			targetPausedAlpha = 0.8
 			targetCircleAlpha = 0
 			targetRelicAlpha = 0
 		else
-		-- Active state: show weather-specific glows
+			-- Active state: show weather-specific glows
 			targetCircleAlpha = 0.6
 			targetRelicAlpha = 0.8
 		end
@@ -4709,7 +4624,7 @@ local function UpdateStatusIcons(elapsed)
 	local isDrunk = temperatureEnabled and CC.IsDrunk and CC.IsDrunk() or false
 	local drunkLevel = CC.GetDrunkLevel and CC.GetDrunkLevel() or 0
 	local isManaCooling = (temperatureEnabled and CC.IsManaPotionCooling and CC.IsManaPotionCooling()) or
-	(thirstEnabled and CC.IsManaPotionQuenching and CC.IsManaPotionQuenching()) or false
+			(thirstEnabled and CC.IsManaPotionQuenching and CC.IsManaPotionQuenching()) or false
 	local constitution = CC.GetConstitution and CC.GetConstitution() or 100
 	local isLowConstitution = constitution <= 75
 
@@ -4727,11 +4642,9 @@ local function UpdateStatusIcons(elapsed)
 
 	-- Swimming icon
 	local isSwimming = IsSwimming()
-	statusIconsRow.swimmingIconAlpha =
-		LerpAlpha(statusIconsRow.swimmingIconAlpha, isSwimming and 1.0 or 0, 4.0, elapsed)
+	statusIconsRow.swimmingIconAlpha = LerpAlpha(statusIconsRow.swimmingIconAlpha, isSwimming and 1.0 or 0, 4.0, elapsed)
 	statusIconsRow.swimmingIcon:SetAlpha(statusIconsRow.swimmingIconAlpha)
-	statusIconsRow.swimmingGlowAlpha =
-		LerpAlpha(statusIconsRow.swimmingGlowAlpha, isSwimming and 0.6 or 0, 4.0, elapsed)
+	statusIconsRow.swimmingGlowAlpha = LerpAlpha(statusIconsRow.swimmingGlowAlpha, isSwimming and 0.6 or 0, 4.0, elapsed)
 	statusIconsRow.swimmingGlow:SetAlpha(statusIconsRow.swimmingGlowAlpha)
 
 	-- Bandage icon
@@ -4756,7 +4669,7 @@ local function UpdateStatusIcons(elapsed)
 	end
 	statusIconsRow.potionIcon:SetAlpha(statusIconsRow.potionIconAlpha)
 	statusIconsRow.potionGlowAlpha = LerpAlpha(statusIconsRow.potionGlowAlpha, isPotionHealing and 0.5 or 0, 4.0,
-		elapsed)
+			elapsed)
 	statusIconsRow.potionGlow:SetAlpha(statusIconsRow.potionGlowAlpha)
 
 	-- Cozy/fire icon
@@ -4843,13 +4756,13 @@ local function UpdateStatusIcons(elapsed)
 		if constitution <= 25 then
 			spinDuration = 2
 			-- Swap to critical icon
-			statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\constitution25.png")
+			statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\constitution25.png")
 		elseif constitution <= 50 then
 			spinDuration = 4
-			statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\constitutionicon.png")
+			statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\constitutionicon.png")
 		else
 			spinDuration = 6
-			statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\constitutionicon.png")
+			statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\constitutionicon.png")
 		end
 		if spinDuration ~= statusIconsRow.constLastSpinDuration then
 			statusIconsRow.constSpin:SetDuration(spinDuration)
@@ -4859,7 +4772,7 @@ local function UpdateStatusIcons(elapsed)
 		end
 	else
 		statusIconsRow.constIconAlpha = LerpAlpha(statusIconsRow.constIconAlpha, 0, 4.0, elapsed)
-		statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\constitutionicon.png")
+		statusIconsRow.constIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\constitutionicon.png")
 	end
 	statusIconsRow.constIcon:SetAlpha(statusIconsRow.constIconAlpha)
 
@@ -4977,7 +4890,7 @@ local function RepositionMeters()
 	local visibleCount = 0
 
 	if displayMode == "vial" then
-	-- VIAL MODE: Horizontal layout for vials, temperature bar centered below
+		-- VIAL MODE: Horizontal layout for vials, temperature bar centered below
 		local vialFrameWidth = VIAL_SIZE + 40 -- Width of each vial meter frame
 		local vialSpacing = vialFrameWidth + VIAL_SPACING -- Brings vials closer with negative spacing
 		local startX = 10
@@ -5067,7 +4980,7 @@ local function RepositionMeters()
 				statusIconsRow:SetPoint("BOTTOM", temperatureMeter, "TOP", 0, 5)
 			else
 				statusIconsRow:SetPoint("BOTTOM", metersContainer, "CENTER", statusXOffset,
-					20 + VIAL_DISPLAY_SIZE / 2 + 6)
+						20 + VIAL_DISPLAY_SIZE / 2 + 6)
 			end
 			statusIconsRow:SetSize(totalVialsWidth > 0 and totalVialsWidth or 100, STATUS_ROW_HEIGHT)
 		end
@@ -5078,10 +4991,9 @@ local function RepositionMeters()
 		metersContainer:SetSize(contentWidth + (hitPadding * 2), contentHeight + (hitPadding * 2))
 
 	else
-	-- BAR MODE: Vertical layout (original)
-	-- Start below the status icons row
+		-- BAR MODE: Vertical layout (original)
+		-- Start below the status icons row
 		local yOffset = -5 - STATUS_ROW_HEIGHT
-		local constitutionEnabled = CC.GetSetting and CC.GetSetting("constitutionEnabled")
 
 		-- Position status icons row at the top of the container
 		if statusIconsRow then
@@ -5158,7 +5070,7 @@ local function RepositionMeters()
 		-- Position Weather button (below temperature if enabled)
 		if temperatureEnabled and weatherButton then
 
-		-- Reset temperature bar to original width in bar mode
+			-- Reset temperature bar to original width in bar mode
 			ResizeTemperatureMeter(temperatureMeter, TEMP_METER_WIDTH)
 
 			-- Position weather button below temperature meter
@@ -5183,8 +5095,8 @@ local function RepositionMeters()
 
 		-- Reposition constitution orb to be vertically centered with just the visible bars
 		if constitutionMeter and visibleCount > 0 then
-		-- Bars start at -5 from container TOP
-		-- Calculate center of bars relative to container TOP
+			-- Bars start at -5 from container TOP
+			-- Calculate center of bars relative to container TOP
 			local barsTopOffset = -5 - STATUS_ROW_HEIGHT
 			local barsCenterFromTop = barsTopOffset - (barsOnlyHeight / 2)
 
@@ -5197,7 +5109,7 @@ local function RepositionMeters()
 
 			constitutionMeter:ClearAllPoints()
 			constitutionMeter:SetPoint("CENTER", metersContainer, "LEFT", -(CONSTITUTION_ORB_SIZE / 2) + 10,
-				verticalOffset)
+					verticalOffset)
 		end
 	end
 end
@@ -5208,12 +5120,12 @@ local function CreateMetersContainer()
 		return metersContainer
 	end
 
-	metersContainer = CreateFrame("Frame", "CozyCampsMetersContainer", UIParent)
+	metersContainer = CreateFrame("Frame", "CozierCampsMetersContainer", UIParent)
 	-- Larger hit area for easier dragging (extends beyond visible meters)
 	local hitPadding = 15
 	-- Now supports 5 meters (Anguish, Exhaustion, Hunger, Thirst, Temperature) + weather button
 	metersContainer:SetSize(METER_WIDTH + 20 + (hitPadding * 2),
-		(METER_HEIGHT * 5) + (METER_SPACING * 5) + WEATHER_BUTTON_SIZE + 20 + (hitPadding * 2))
+			(METER_HEIGHT * 5) + (METER_SPACING * 5) + WEATHER_BUTTON_SIZE + 20 + (hitPadding * 2))
 	metersContainer:SetPoint("TOP", UIParent, "TOP", 0, -100 + hitPadding)
 	metersContainer:SetMovable(true)
 	metersContainer:EnableMouse(true)
@@ -5225,7 +5137,7 @@ local function CreateMetersContainer()
 	local scale = CC.GetSetting("meterScale") or 1.0
 	metersContainer:SetScale(scale)
 
-	metersContainer:SetScript("OnDragStart", function(self)
+	metersContainer:SetScript("OnDragStart", function()
 		StartMovingMetersContainer()
 	end)
 	metersContainer:SetScript("OnDragStop", function(self)
@@ -5248,36 +5160,36 @@ local function CreateMetersContainer()
 
 	-- Create the meters with icons
 	-- Using custom BLP icons from assets folder
-	local AnguishIcon = "Interface\\AddOns\\CozyCamps\\assets\\Anguishicon.blp"
-	local exhaustionIcon = "Interface\\AddOns\\CozyCamps\\assets\\exhaustionicon.blp"
-	local hungerIcon = "Interface\\AddOns\\CozyCamps\\assets\\hungericon.blp"
-	local thirstIcon = "Interface\\AddOns\\CozyCamps\\assets\\watericon.blp"
+	local AnguishIcon = "Interface\\AddOns\\CozierCamps\\assets\\Anguishicon.blp"
+	local exhaustionIcon = "Interface\\AddOns\\CozierCamps\\assets\\exhaustionicon.blp"
+	local hungerIcon = "Interface\\AddOns\\CozierCamps\\assets\\hungericon.blp"
+	local thirstIcon = "Interface\\AddOns\\CozierCamps\\assets\\watericon.blp"
 
 	-- Check display mode
 	local displayMode = CC.GetSetting and CC.GetSetting("meterDisplayMode") or "bar"
 
 	if displayMode == "vial" then
-	-- VIAL MODE: Create vertical potion-style meters in a horizontal row
+		-- VIAL MODE: Create vertical potion-style meters in a horizontal row
 		local vialStartX = 10
 		local vialSpacing = VIAL_SIZE + 40 + VIAL_SPACING -- Tighter spacing with negative VIAL_SPACING
 
 		-- Vial overlay textures (unique potion bottle for each meter type - 256x256)
-		local constitutionVial = "Interface\\AddOns\\CozyCamps\\assets\\constitutionpotion.png"
-		local anguishVial = "Interface\\AddOns\\CozyCamps\\assets\\anguishpotion.png"
-		local exhaustionVial = "Interface\\AddOns\\CozyCamps\\assets\\exhaustpotion.png"
-		local hungerVial = "Interface\\AddOns\\CozyCamps\\assets\\hungerpotion.png"
-		local thirstVial = "Interface\\AddOns\\CozyCamps\\assets\\thirstpotion.png"
+		local constitutionVial = "Interface\\AddOns\\CozierCamps\\assets\\constitutionpotion.png"
+		local anguishVial = "Interface\\AddOns\\CozierCamps\\assets\\anguishpotion.png"
+		local exhaustionVial = "Interface\\AddOns\\CozierCamps\\assets\\exhaustpotion.png"
+		local hungerVial = "Interface\\AddOns\\CozierCamps\\assets\\hungerpotion.png"
+		local thirstVial = "Interface\\AddOns\\CozierCamps\\assets\\thirstpotion.png"
 
 		-- Fill textures for each meter type
-		local constitutionFill = "Interface\\AddOns\\CozyCamps\\assets\\health.png"
-		local anguishFill = "Interface\\AddOns\\CozyCamps\\assets\\anguish.png"
-		local exhaustionFill = "Interface\\AddOns\\CozyCamps\\assets\\exhaust.png"
-		local hungerFill = "Interface\\AddOns\\CozyCamps\\assets\\hunger.png"
-		local thirstFill = "Interface\\AddOns\\CozyCamps\\assets\\thirst.png"
+		local constitutionFill = "Interface\\AddOns\\CozierCamps\\assets\\health.png"
+		local anguishFill = "Interface\\AddOns\\CozierCamps\\assets\\anguish.png"
+		local exhaustionFill = "Interface\\AddOns\\CozierCamps\\assets\\exhaust.png"
+		local hungerFill = "Interface\\AddOns\\CozierCamps\\assets\\hunger.png"
+		local thirstFill = "Interface\\AddOns\\CozierCamps\\assets\\thirst.png"
 
 		-- Constitution vial first (leftmost)
 		constitutionMeter = CreateVialMeter("Constitution", metersContainer, vialStartX, CONSTITUTION_BAR_COLOR,
-			constitutionVial, constitutionFill)
+				constitutionVial, constitutionFill)
 		constitutionMeter.isConstitution = true
 		constitutionMeter.vialOverlay:SetVertexColor(1, 1, 1, 1)
 		-- Remove tinting from constitution fill to show original texture colors
@@ -5285,31 +5197,31 @@ local function CreateMetersContainer()
 
 		-- Other vials in order
 		AnguishMeter = CreateVialMeter("Anguish", metersContainer, vialStartX + vialSpacing, Anguish_COLOR, anguishVial,
-			anguishFill)
+				anguishFill)
 		AnguishMeter.vialOverlay:SetVertexColor(1, 1, 1, 1)
 		-- Scale down Anguish vial by 3% (it appears slightly larger than others)
 		local anguishScale = 0.97
 		AnguishMeter.orbBg:SetSize(AnguishMeter.orbBg:GetWidth() * anguishScale,
-			AnguishMeter.orbBg:GetHeight() * anguishScale)
+				AnguishMeter.orbBg:GetHeight() * anguishScale)
 		AnguishMeter.fillBar:SetSize(AnguishMeter.fillBar:GetWidth() * anguishScale,
-			AnguishMeter.fillBar:GetHeight() * anguishScale)
+				AnguishMeter.fillBar:GetHeight() * anguishScale)
 		AnguishMeter.vialOverlay:SetSize(AnguishMeter.vialOverlay:GetWidth() * anguishScale,
-			AnguishMeter.vialOverlay:GetHeight() * anguishScale)
+				AnguishMeter.vialOverlay:GetHeight() * anguishScale)
 		AnguishMeter.glowGreen:SetSize(AnguishMeter.glowGreen:GetWidth() * anguishScale,
-			AnguishMeter.glowGreen:GetHeight() * anguishScale)
+				AnguishMeter.glowGreen:GetHeight() * anguishScale)
 		AnguishMeter.glowOrange:SetSize(AnguishMeter.glowOrange:GetWidth() * anguishScale,
-			AnguishMeter.glowOrange:GetHeight() * anguishScale)
+				AnguishMeter.glowOrange:GetHeight() * anguishScale)
 		AnguishMeter.glowBlue:SetSize(AnguishMeter.glowBlue:GetWidth() * anguishScale,
-			AnguishMeter.glowBlue:GetHeight() * anguishScale)
+				AnguishMeter.glowBlue:GetHeight() * anguishScale)
 		exhaustionMeter = CreateVialMeter("Exhaustion", metersContainer, vialStartX + vialSpacing * 2, EXHAUSTION_COLOR,
-			exhaustionVial, exhaustionFill)
+				exhaustionVial, exhaustionFill)
 		exhaustionMeter.vialOverlay:SetVertexColor(1, 1, 1, 1)
 		hungerMeter = CreateVialMeter("Hunger", metersContainer, vialStartX + vialSpacing * 3, HUNGER_COLOR, hungerVial,
-			hungerFill)
+				hungerFill)
 		hungerMeter.vialOverlay:SetVertexColor(1, 1, 1, 1)
 
 		thirstMeter = CreateVialMeter("Thirst", metersContainer, vialStartX + vialSpacing * 4, THIRST_COLOR, thirstVial,
-			thirstFill)
+				thirstFill)
 		thirstMeter.vialOverlay:SetVertexColor(1, 1, 1, 1)
 
 		-- Temperature uses a BAR (not a vial), centered below the vials
@@ -5352,15 +5264,15 @@ local function CreateMetersContainer()
 		SetupTemperatureTooltip(temperatureMeter)
 
 	else
-	-- BAR MODE: Create horizontal bar meters (original layout)
-	-- Constitution bar at the TOP of the stack (positions will be set by RepositionMeters)
+		-- BAR MODE: Create horizontal bar meters (original layout)
+		-- Constitution bar at the TOP of the stack (positions will be set by RepositionMeters)
 		constitutionBarMeter = CreateConstitutionBarMeter(metersContainer, -5)
 		SetupConstitutionBarTooltip(constitutionBarMeter)
 
 		-- Create other meters (positions will be set by RepositionMeters)
 		AnguishMeter = CreateMeter("Anguish", metersContainer, -5 - METER_HEIGHT - METER_SPACING, AnguishIcon, true)
 		exhaustionMeter = CreateMeter("Exhaustion", metersContainer, -5 - (METER_HEIGHT + METER_SPACING) * 2,
-			exhaustionIcon, false)
+				exhaustionIcon, false)
 		hungerMeter = CreateMeter("Hunger", metersContainer, -5 - (METER_HEIGHT + METER_SPACING) * 3, hungerIcon, false)
 
 		-- Thirst bar
@@ -5461,7 +5373,7 @@ local function UpdateAnguishMeter(elapsed)
 	if smoothedAnguishDisplay == nil then
 		smoothedAnguishDisplay = targetDisplay
 	else
-	-- Lerp toward target value
+		-- Lerp toward target value
 		local diff = targetDisplay - smoothedAnguishDisplay
 		smoothedAnguishDisplay = smoothedAnguishDisplay + diff * math.min(1, ANGUISH_DISPLAY_LERP_SPEED * elapsed)
 	end
@@ -5475,10 +5387,10 @@ local function UpdateAnguishMeter(elapsed)
 	-- This matches the inverted bar display where full bar = 0% anguish
 	local percentText
 	if displayMode == "vial" then
-	-- Vial mode: just the number (no % symbol)
+		-- Vial mode: just the number (no % symbol)
 		percentText = string.format("%.0f", displayValue)
 	else
-	-- Bar mode: integer percentage (round to nearest)
+		-- Bar mode: integer percentage (round to nearest)
 		percentText = string.format("%.0f%%", displayValue)
 	end
 	-- Apply text based on hideVialText setting
@@ -5560,7 +5472,7 @@ local function UpdateAnguishMeter(elapsed)
 		AnguishMeter.glowOrange:SetAlpha(glowType == "orange" and alpha or 0)
 		AnguishMeter.glowBlue:SetAlpha(glowType == "blue" and alpha or 0)
 	else
-	-- BAR MODE: Use atlas glow system
+		-- BAR MODE: Use atlas glow system
 		local glow = AnguishMeter.glow
 		if not glow then
 			return
@@ -5604,10 +5516,10 @@ local function UpdateAnguishMeter(elapsed)
 
 		-- Size update: snap immediately to paused size, interpolate others
 		if glow.targetSize < 0 then
-		-- Paused state: snap immediately to avoid large glow flash
+			-- Paused state: snap immediately to avoid large glow flash
 			glow.currentSize = glow.targetSize
 		else
-		-- Normal state: smooth interpolation
+			-- Normal state: smooth interpolation
 			local sizeDiff = glow.targetSize - glow.currentSize
 			if math.abs(sizeDiff) < 0.5 then
 				glow.currentSize = glow.targetSize
@@ -5638,10 +5550,10 @@ local function UpdateExhaustionMeter(elapsed)
 	-- This matches the inverted bar display where full bar = 0% exhaustion
 	local percentText
 	if displayMode == "vial" then
-	-- Vial mode: just the number (no % symbol)
+		-- Vial mode: just the number (no % symbol)
 		percentText = string.format("%.0f", displayValue)
 	else
-	-- Bar mode: integer percentage (round to nearest)
+		-- Bar mode: integer percentage (round to nearest)
 		percentText = string.format("%.0f%%", displayValue)
 	end
 	-- Apply text based on hideVialText setting
@@ -5665,7 +5577,7 @@ local function UpdateExhaustionMeter(elapsed)
 	-- Update bar color (green when decaying)
 	if isDecaying then
 		exhaustionMeter.bar:SetStatusBarColor(EXHAUSTION_DECAY_COLOR.r, EXHAUSTION_DECAY_COLOR.g,
-			EXHAUSTION_DECAY_COLOR.b)
+				EXHAUSTION_DECAY_COLOR.b)
 	else
 		exhaustionMeter.bar:SetStatusBarColor(EXHAUSTION_COLOR.r, EXHAUSTION_COLOR.g, EXHAUSTION_COLOR.b)
 	end
@@ -5693,11 +5605,11 @@ local function UpdateExhaustionMeter(elapsed)
 			targetAlpha = 0.7
 			glowTypeExh = "blue"
 		elseif isDecaying or atRestThreshold then
-		-- Exhaustion decreasing (resting/near fire) - show green (prioritize over movement glow)
+			-- Exhaustion decreasing (resting/near fire) - show green (prioritize over movement glow)
 			targetAlpha = 1.0
 			glowTypeExh = "green"
 		elseif glowType > 0 and glowIntensity > 0 then
-		-- Exhaustion increasing (moving/running) - show orange
+			-- Exhaustion increasing (moving/running) - show orange
 			targetAlpha = math.max(0.6, glowIntensity)
 			glowTypeExh = "orange"
 		end
@@ -5727,7 +5639,7 @@ local function UpdateExhaustionMeter(elapsed)
 		exhaustionMeter.glowOrange:SetAlpha(glowTypeExh == "orange" and alpha or 0)
 		exhaustionMeter.glowBlue:SetAlpha(glowTypeExh == "blue" and alpha or 0)
 	else
-	-- BAR MODE: Use atlas glow system
+		-- BAR MODE: Use atlas glow system
 		local glow = exhaustionMeter.glow
 		if not glow then
 			return
@@ -5776,10 +5688,10 @@ local function UpdateExhaustionMeter(elapsed)
 
 		-- Size update: snap immediately to paused size, interpolate others
 		if glow.targetSize < 0 then
-		-- Paused state: snap immediately to avoid large glow flash
+			-- Paused state: snap immediately to avoid large glow flash
 			glow.currentSize = glow.targetSize
 		else
-		-- Normal state: smooth interpolation
+			-- Normal state: smooth interpolation
 			local sizeDiff = glow.targetSize - glow.currentSize
 			if math.abs(sizeDiff) < 0.5 then
 				glow.currentSize = glow.targetSize
@@ -5794,7 +5706,7 @@ end
 -- Check if meters should be visible
 local function ShouldShowMeters()
 	if not CC.IsPlayerEligible or not CC.IsPlayerEligible() then
-	-- Debug: show why meters are hidden
+		-- Debug: show why meters are hidden
 		local enabled = CC.GetSetting and CC.GetSetting("enabled")
 		if not enabled then
 			CC.Debug("Meters hidden: master toggle disabled", "general")
@@ -5895,20 +5807,20 @@ local function UpdateMeters(elapsed)
 	local displayMode = CC.GetSetting and CC.GetSetting("meterDisplayMode") or "bar"
 	if ShouldShowConstitution() then
 		if displayMode == "vial" then
-		-- Vial mode: show orb, hide bar
+			-- Vial mode: show orb, hide bar
 			UpdateConstitutionMeter(elapsed)
 			if constitutionBarMeter then
 				constitutionBarMeter:Hide()
 			end
 		else
-		-- Bar mode: show bar, hide orb
+			-- Bar mode: show bar, hide orb
 			UpdateConstitutionBarMeter(elapsed)
 			if constitutionMeter then
 				constitutionMeter:Hide()
 			end
 		end
 	else
-	-- Constitution disabled - hide both and restore UI
+		-- Constitution disabled - hide both and restore UI
 		if constitutionMeter then
 			constitutionMeter:Hide()
 		end
@@ -5925,7 +5837,7 @@ end
 
 -- Load saved positions
 local function LoadMeterPosition()
--- Load meter bars position
+	-- Load meter bars position
 	if CC.db and CC.db.meterPosition then
 		local pos = CC.db.meterPosition
 		metersContainer:ClearAllPoints()
@@ -5934,16 +5846,16 @@ local function LoadMeterPosition()
 		if pos.screenLeft and pos.screenTop then
 			metersContainer:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", pos.screenLeft, pos.screenTop)
 		else
-		-- Legacy format fallback
+			-- Legacy format fallback
 			metersContainer:SetPoint(pos.point or "CENTER", UIParent, pos.relativePoint or "CENTER", pos.x or 0,
-				pos.y or 0)
+					pos.y or 0)
 		end
 	end
--- Constitution orb is anchored to metersContainer, so it moves with meters automatically
+	-- Constitution orb is anchored to metersContainer, so it moves with meters automatically
 end
 
 -- Event frame
-local eventFrame = CreateFrame("Frame", "CozyCampsMetersFrame")
+local eventFrame = CreateFrame("Frame", "CozierCampsMetersFrame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_TARGET_CHANGED")
 
@@ -5953,8 +5865,8 @@ eventFrame:SetScript("OnEvent", function(self, event)
 		CreateMetersContainer()
 		C_Timer.After(1, LoadMeterPosition)
 	elseif event == "PLAYER_TARGET_CHANGED" then
-	-- Handle target frame visibility based on constitution state
-	-- This prevents ghost frames when acquiring/clearing targets
+		-- Handle target frame visibility based on constitution state
+		-- This prevents ghost frames when acquiring/clearing targets
 		if InCombatLockdown() then
 			return
 		end
@@ -5963,11 +5875,11 @@ eventFrame:SetScript("OnEvent", function(self, event)
 		end
 
 		if adventureModeUIState.targetFrameHidden then
-		-- Constitution is below 50%, hide the target frame
+			-- Constitution is below 50%, hide the target frame
 			SafeHideFrame(TargetFrame)
 		else
-		-- Constitution is above 50%, let the game handle target frame normally
-		-- Only show if there's actually a target to prevent ghost frames
+			-- Constitution is above 50%, let the game handle target frame normally
+			-- Only show if there's actually a target to prevent ghost frames
 			if UnitExists("target") then
 				SafeShowFrame(TargetFrame)
 			end
@@ -5982,7 +5894,7 @@ end)
 
 -- Settings callback
 CC.RegisterCallback("SETTINGS_CHANGED", function(key)
--- Always refresh cached settings on any change
+	-- Always refresh cached settings on any change
 	RefreshCachedSettings()
 
 	-- Handle meter scale changes
@@ -5994,9 +5906,9 @@ CC.RegisterCallback("SETTINGS_CHANGED", function(key)
 	end
 
 	if key == "AnguishEnabled" or key == "exhaustionEnabled" or key == "hungerEnabled" or key == "thirstEnabled" or key ==
-	"temperatureEnabled" or key == "constitutionEnabled" or key == "ALL" then
+			"temperatureEnabled" or key == "constitutionEnabled" or key == "ALL" then
 		if metersContainer then
-		-- Reposition meters to condense gaps
+			-- Reposition meters to condense gaps
 			RepositionMeters()
 		end
 	end
@@ -6004,7 +5916,7 @@ CC.RegisterCallback("SETTINGS_CHANGED", function(key)
 	-- Display mode changed - need to recreate meters since structures are different
 	if key == "meterDisplayMode" then
 		if metersContainer then
-		-- Save current position before destroying
+			-- Save current position before destroying
 			local savedPos = nil
 			if CC.db and CC.db.meterPosition then
 				savedPos = CC.db.meterPosition
@@ -6055,16 +5967,16 @@ CC.RegisterCallback("SETTINGS_CHANGED", function(key)
 			if savedPos then
 				metersContainer:ClearAllPoints()
 				if savedPos.screenLeft and savedPos.screenTop then
-				-- New format: absolute screen coordinates
+					-- New format: absolute screen coordinates
 					metersContainer:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", savedPos.screenLeft, savedPos.screenTop)
 				elseif savedPos.point then
-				-- Legacy format fallback
+					-- Legacy format fallback
 					metersContainer:SetPoint(savedPos.point, UIParent, savedPos.relativePoint, savedPos.x, savedPos.y)
 				end
 			end
 
 			local newMode = CC.GetSetting("meterDisplayMode")
-			print("|cff88CCFFCozyCamps:|r Switched to " .. (newMode == "vial" and "vial" or "bar") .. " mode")
+			print("|cff88CCFFCozierCamps:|r Switched to " .. (newMode == "vial" and "vial" or "bar") .. " mode")
 		end
 	end
 
@@ -6151,13 +6063,14 @@ end)
 -- Debug Panel for meter adjustments (styled to match settings)
 local debugPanel = nil
 
+--- @type function @return void
 local function CreateDebugPanel()
 	if debugPanel then
 		return debugPanel
 	end
 
 	-- Create main frame with dark theme
-	local panel = CreateFrame("Frame", "CozyCampsDebugPanel", UIParent, "BackdropTemplate")
+	local panel = CreateFrame("Frame", "CozierCampsDebugPanel", UIParent, "BackdropTemplate")
 	panel:SetSize(320, 500)
 	panel:SetPoint("CENTER")
 	panel:SetMovable(true)
@@ -6204,7 +6117,7 @@ local function CreateDebugPanel()
 	local fireIcon = iconFrame:CreateTexture(nil, "ARTWORK")
 	fireIcon:SetSize(36, 36)
 	fireIcon:SetPoint("CENTER")
-	fireIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\mainlogo.png")
+	fireIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\mainlogo.png")
 	fireIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
 	-- Animated glow pulse
@@ -6262,7 +6175,7 @@ local function CreateDebugPanel()
 	end)
 	closeBtn:SetScript("OnClick", function()
 		if InCombatLockdown() then
-			print("|cff88CCFFCozyCamps:|r Cannot close debug panel during combat.")
+			print("|cff88CCFFCozierCamps:|r Cannot close debug panel during combat.")
 			return
 		end
 		panel:Hide()
@@ -6326,7 +6239,7 @@ local function CreateDebugPanel()
 		sliderBg:SetColorTexture(0.12, 0.12, 0.14, 1)
 
 		-- Slider
-		local slider = CreateFrame("Slider", "CozyCampsSlider" .. name, sliderFrame, "OptionsSliderTemplate")
+		local slider = CreateFrame("Slider", "CozierCampsSlider" .. name, sliderFrame, "OptionsSliderTemplate")
 		slider:SetPoint("BOTTOM", 0, 6)
 		slider:SetSize(270, 12)
 		slider:SetMinMaxValues(minVal, maxVal)
@@ -6406,9 +6319,9 @@ local function CreateDebugPanel()
 
 	if CC.GetSetting and CC.GetSetting("temperatureEnabled") and CC.GetTemperature and CC.SetTemperature then
 		local s = CreateSlider("Temperature", "Temperature", -100, 100, CC.GetTemperature, CC.SetTemperature,
-			function(v)
-				return string.format("%.0f", v)
-			end, false) -- Not inverted (temperature uses -100 to +100)
+				function(v)
+					return string.format("%.0f", v)
+				end, false) -- Not inverted (temperature uses -100 to +100)
 		if s then
 			table.insert(sliders, s)
 		end
@@ -6416,35 +6329,35 @@ local function CreateDebugPanel()
 
 	-- Add debug checkboxes below sliders
 	local debugCheckboxYOffset = yOffset - 5
-	local debugSettings = {{
-		key = "debugEnabled",
-		label = "General Debug",
-		tooltip = "Show general debug messages in chat."
-	}, {
-		key = "proximityDebugEnabled",
-		label = "Proximity Debug",
-		tooltip = "Show fire proximity detection messages."
-	}, {
-		key = "AnguishDebugEnabled",
-		label = "Anguish Debug",
-		tooltip = "Show Anguish system messages."
-	}, {
-		key = "exhaustionDebugEnabled",
-		label = "Exhaustion Debug",
-		tooltip = "Show exhaustion system messages."
-	}, {
-		key = "hungerDebugEnabled",
-		label = "Hunger Debug",
-		tooltip = "Show hunger system messages."
-	}, {
-		key = "thirstDebugEnabled",
-		label = "Thirst Debug",
-		tooltip = "Show thirst system messages."
-	}, {
-		key = "temperatureDebugEnabled",
-		label = "Temperature Debug",
-		tooltip = "Show temperature system messages."
-	}}
+	local debugSettings = { {
+								key = "debugEnabled",
+								label = "General Debug",
+								tooltip = "Show general debug messages in chat."
+							}, {
+								key = "proximityDebugEnabled",
+								label = "Proximity Debug",
+								tooltip = "Show fire proximity detection messages."
+							}, {
+								key = "AnguishDebugEnabled",
+								label = "Anguish Debug",
+								tooltip = "Show Anguish system messages."
+							}, {
+								key = "exhaustionDebugEnabled",
+								label = "Exhaustion Debug",
+								tooltip = "Show exhaustion system messages."
+							}, {
+								key = "hungerDebugEnabled",
+								label = "Hunger Debug",
+								tooltip = "Show hunger system messages."
+							}, {
+								key = "thirstDebugEnabled",
+								label = "Thirst Debug",
+								tooltip = "Show thirst system messages."
+							}, {
+								key = "temperatureDebugEnabled",
+								label = "Temperature Debug",
+								tooltip = "Show temperature system messages."
+							} }
 	panel.debugCheckboxes = {}
 	for _, dbg in ipairs(debugSettings) do
 		local cbFrame = CreateFrame("Frame", nil, content, "BackdropTemplate")
@@ -6531,13 +6444,13 @@ local function CreateDebugPanel()
 	local wetBtn = CreateToggleButton("Set Wet", -75, buttonYOffset, 90, function()
 		if CC.SetWetEffect then
 			CC.SetWetEffect(true)
-			print("|cff88CCFFCozyCamps:|r Debug: Set to WET")
+			print("|cff88CCFFCozierCamps:|r Debug: Set to WET")
 		end
 	end)
 	local dryBtn = CreateToggleButton("Set Dry", 75, buttonYOffset, 90, function()
 		if CC.SetWetEffect then
 			CC.SetWetEffect(false)
-			print("|cff88CCFFCozyCamps:|r Debug: Set to DRY")
+			print("|cff88CCFFCozierCamps:|r Debug: Set to DRY")
 		end
 	end)
 	buttonYOffset = buttonYOffset - 30
@@ -6553,13 +6466,13 @@ local function CreateDebugPanel()
 	local rainBtn = CreateToggleButton("Rain", -75, buttonYOffset, 90, function()
 		if CC.SetDebugWeatherType then
 			CC.SetDebugWeatherType(1) -- WEATHER_TYPE_RAIN
-			print("|cff88CCFFCozyCamps:|r Debug: Weather set to RAIN")
+			print("|cff88CCFFCozierCamps:|r Debug: Weather set to RAIN")
 		end
 	end)
 	local snowBtn = CreateToggleButton("Snow", 75, buttonYOffset, 90, function()
 		if CC.SetDebugWeatherType then
 			CC.SetDebugWeatherType(2) -- WEATHER_TYPE_SNOW
-			print("|cff88CCFFCozyCamps:|r Debug: Weather set to SNOW")
+			print("|cff88CCFFCozierCamps:|r Debug: Weather set to SNOW")
 		end
 	end)
 	buttonYOffset = buttonYOffset - 28
@@ -6567,13 +6480,13 @@ local function CreateDebugPanel()
 	local dustBtn = CreateToggleButton("Dust", -75, buttonYOffset, 90, function()
 		if CC.SetDebugWeatherType then
 			CC.SetDebugWeatherType(3) -- WEATHER_TYPE_DUST
-			print("|cff88CCFFCozyCamps:|r Debug: Weather set to DUST")
+			print("|cff88CCFFCozierCamps:|r Debug: Weather set to DUST")
 		end
 	end)
 	local stormBtn = CreateToggleButton("Storm", 75, buttonYOffset, 90, function()
 		if CC.SetDebugWeatherType then
 			CC.SetDebugWeatherType(4) -- WEATHER_TYPE_STORM
-			print("|cff88CCFFCozyCamps:|r Debug: Weather set to STORM")
+			print("|cff88CCFFCozierCamps:|r Debug: Weather set to STORM")
 		end
 	end)
 	buttonYOffset = buttonYOffset - 28
@@ -6581,7 +6494,7 @@ local function CreateDebugPanel()
 	local clearBtn = CreateToggleButton("Clear", 0, buttonYOffset, 90, function()
 		if CC.SetDebugWeatherType then
 			CC.SetDebugWeatherType(nil) -- Clear override
-			print("|cff88CCFFCozyCamps:|r Debug: Weather override CLEARED")
+			print("|cff88CCFFCozierCamps:|r Debug: Weather override CLEARED")
 		end
 	end)
 	buttonYOffset = buttonYOffset - 10
@@ -6622,9 +6535,9 @@ local function CreateDebugPanel()
 end
 
 function CC.ToggleDebugPanel()
--- Prevent showing/hiding during combat to avoid taint
+	-- Prevent showing/hiding during combat to avoid taint
 	if InCombatLockdown() then
-		print("|cff88CCFFCozyCamps:|r Cannot toggle debug panel during combat.")
+		print("|cff88CCFFCozierCamps:|r Cannot toggle debug panel during combat.")
 		return
 	end
 	local panel = CreateDebugPanel()
@@ -6635,7 +6548,7 @@ function CC.ToggleDebugPanel()
 	end
 end
 
--- Minimap Button for CozyCamps settings
+-- Minimap Button for CozierCamps settings
 local MINIMAP_BUTTON_SIZE = 32
 local minimapButton = nil
 
@@ -6644,7 +6557,7 @@ local function CreateMinimapButton()
 		return minimapButton
 	end
 
-	local button = CreateFrame("Button", "CozyCampsMinimapButton", Minimap)
+	local button = CreateFrame("Button", "CozierCampsMinimapButton", Minimap)
 	button:SetSize(MINIMAP_BUTTON_SIZE, MINIMAP_BUTTON_SIZE)
 	button:SetFrameStrata("MEDIUM")
 	button:SetFrameLevel(8)
@@ -6670,11 +6583,11 @@ local function CreateMinimapButton()
 	button.overlay:SetPoint("CENTER", -1, 1)
 	button.overlay:SetTexture("Interface\\Minimap\\UI-Minimap-Background")
 
-	-- Icon - using CozyCamps fire icon, 1.5x size and orange colored
+	-- Icon - using CozierCamps fire icon, 1.5x size and orange colored
 	button.icon = button:CreateTexture(nil, "ARTWORK")
 	button.icon:SetSize(30, 30)
 	button.icon:SetPoint("CENTER", -1, 1)
-	button.icon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\fireicon")
+	button.icon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\fireicon")
 	button.icon:SetVertexColor(1.0, 0.6, 0.2, 1.0) -- Orange color
 
 	-- Border (the golden ring)
@@ -6708,7 +6621,7 @@ local function CreateMinimapButton()
 		end
 	end)
 
-	-- Click handler - left click opens settings, shift+left click opens debug
+	-- Click handler - left click opens settings, shift+left click opens debug, right click opens debug
 	button:SetScript("OnClick", function(self, mouseButton)
 		if mouseButton == "LeftButton" then
 			if IsShiftKeyDown() then
@@ -6734,7 +6647,7 @@ local function CreateMinimapButton()
 	-- Tooltip
 	button:SetScript("OnEnter", function(self)
 		GameTooltip:SetOwner(self, "ANCHOR_LEFT")
-		GameTooltip:SetText("CozyCamps", 1, 0.6, 0)
+		GameTooltip:SetText("CozierCamps", 1, 0.6, 0)
 		GameTooltip:AddLine("Left-click to open settings", 0.8, 0.8, 0.8)
 		GameTooltip:AddLine("Drag to reposition", 0.6, 0.6, 0.6)
 		GameTooltip:Show()

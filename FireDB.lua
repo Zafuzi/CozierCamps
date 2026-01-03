@@ -1,9 +1,9 @@
 -- ============================================================================
--- CozyCamps - FireDB.lua
+-- CozierCamps - FireDB.lua
 -- Database of static campfire locations in Classic WoW
 -- Coordinates are in 0-100 scale (percentage of map)
 -- ============================================================================
-CozyCampsFireDB = {
+CozierCampsFireDB = {
 	["Winterspring"] = {
 		{
 			["y"] = 58.43,
@@ -740,6 +740,16 @@ CozyCampsFireDB = {
 			["zone"] = "The Hinterlands",
 			["timestamp"] = "2025-12-29 13:42:22",
 			["description"] = "Shadra'Alor",
+		},
+	},
+	["Hallowfall"] = {
+		{
+			["y"] = 56.18,
+			["x"] = 42.78,
+			["subZone"] = "Empire's Edge Tavern",
+			["zone"] = "Hallowfall",
+			["timestamp"] = "2026-01-02 16:45:48",
+			["description"] = "Empire's Edge Tavern",
 		},
 	},
 }

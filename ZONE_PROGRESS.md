@@ -1,4 +1,4 @@
-# CozyCamps - Zone Fire Mapping Progress
+# CozierCamps - Zone Fire Mapping Progress
 
 Track campfire locations logged for each zone in Classic WoW.
 

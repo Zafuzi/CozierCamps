@@ -1,12 +1,12 @@
--- CozyCamps - HPTunnelVision.lua
--- HP-based tunnel vision effect (independent of other CozyCamps settings)
+-- CozierCamps - HPTunnelVision.lua
+-- HP-based tunnel vision effect (independent of other CozierCamps settings)
 -- Midnight (Retail 12.0.1 / Interface 120001) compatibility
 --
 -- FIX: UnitHealth("player") may return a "secret value" that can report type == "number"
 -- but throws on arithmetic/comparison. We now validate numeric values via pcall before use.
 -- This replaces the earlier type-based sanitization that still allowed secret values through. :contentReference[oaicite:1]{index=1}
 
-local CC = CozyCamps
+local CC = CozierCamps
 if not CC then
 	return
 end
@@ -37,10 +37,10 @@ end
 -- Each level adds on top of the previous for cumulative effect
 ------------------------------------------------------------
 local HP_TEXTURES = {
-	"Interface\\AddOns\\CozyCamps\\assets\\tunnel_vision_1.png", -- Level 1: 80% HP
-	"Interface\\AddOns\\CozyCamps\\assets\\tunnel_vision_2.png", -- Level 2: 60% HP
-	"Interface\\AddOns\\CozyCamps\\assets\\tunnel_vision_3.png", -- Level 3: 40% HP
-	"Interface\\AddOns\\CozyCamps\\assets\\tunnel_vision_4.png"  -- Level 4: 20% HP
+	"Interface\\AddOns\\CozierCamps\\assets\\tunnel_vision_1.png", -- Level 1: 80% HP
+	"Interface\\AddOns\\CozierCamps\\assets\\tunnel_vision_2.png", -- Level 2: 60% HP
+	"Interface\\AddOns\\CozierCamps\\assets\\tunnel_vision_3.png", -- Level 3: 40% HP
+	"Interface\\AddOns\\CozierCamps\\assets\\tunnel_vision_4.png"  -- Level 4: 20% HP
 }
 
 -- HP thresholds (percent) where each level activates (cumulative)
@@ -64,7 +64,7 @@ local function CreateOverlayFrame(level)
 		return overlayFrames[level]
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsHPTunnelVision_" .. level, UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsHPTunnelVision_" .. level, UIParent)
 	frame:SetAllPoints(UIParent)
 
 	frame:SetFrameStrata("FULLSCREEN")
@@ -277,7 +277,7 @@ end
 ------------------------------------------------------------
 -- Events
 ------------------------------------------------------------
-local eventFrame = CreateFrame("Frame", "CozyCampsHPTunnelVisionFrame")
+local eventFrame = CreateFrame("Frame", "CozierCampsHPTunnelVisionFrame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
 

@@ -1,6 +1,6 @@
--- CozyCamps - Settings.lua
+-- CozierCamps - Settings.lua
 -- Modern configuration UI with tabbed interface
-local CC = CozyCamps
+local CC = CozierCamps
 local settingsFrame = nil
 local controls = {}
 local currentTab = "general"
@@ -9,24 +9,24 @@ local tabButtons = {}
 
 -- Color scheme - Black/Slate with Orange accents
 local COLORS = {
-	bg = {0.06, 0.06, 0.08, 0.97},
-	headerBg = {0.08, 0.08, 0.10, 1},
-	accent = {1.0, 0.6, 0.2, 1}, -- Orange
-	accentDark = {0.8, 0.45, 0.1, 1}, -- Darker orange
-	accentGlow = {1.0, 0.7, 0.3, 0.3}, -- Orange glow
-	text = {0.9, 0.9, 0.9, 1},
-	textDim = {0.55, 0.55, 0.55, 1},
-	success = {0.4, 0.9, 0.4, 1},
-	warning = {1.0, 0.8, 0.2, 1},
-	danger = {0.9, 0.3, 0.3, 1},
-	cardBg = {0.09, 0.09, 0.11, 0.95},
-	cardBorder = {0.18, 0.18, 0.2, 1},
-	sliderBg = {0.12, 0.12, 0.14, 1},
-	sliderFill = {1.0, 0.6, 0.2, 0.9}, -- Orange
-	ember = {1.0, 0.4, 0.1, 1}, -- Ember orange
-	Anguish = {0.9, 0.3, 0.3, 1}, -- Anguish red
-	tabInactive = {0.1, 0.1, 0.12, 1},
-	tabActive = {0.15, 0.15, 0.18, 1}
+	bg = { 0.06, 0.06, 0.08, 0.97 },
+	headerBg = { 0.08, 0.08, 0.10, 1 },
+	accent = { 1.0, 0.6, 0.2, 1 }, -- Orange
+	accentDark = { 0.8, 0.45, 0.1, 1 }, -- Darker orange
+	accentGlow = { 1.0, 0.7, 0.3, 0.3 }, -- Orange glow
+	text = { 0.9, 0.9, 0.9, 1 },
+	textDim = { 0.55, 0.55, 0.55, 1 },
+	success = { 0.4, 0.9, 0.4, 1 },
+	warning = { 1.0, 0.8, 0.2, 1 },
+	danger = { 0.9, 0.3, 0.3, 1 },
+	cardBg = { 0.09, 0.09, 0.11, 0.95 },
+	cardBorder = { 0.18, 0.18, 0.2, 1 },
+	sliderBg = { 0.12, 0.12, 0.14, 1 },
+	sliderFill = { 1.0, 0.6, 0.2, 0.9 }, -- Orange
+	ember = { 1.0, 0.4, 0.1, 1 }, -- Ember orange
+	Anguish = { 0.9, 0.3, 0.3, 1 }, -- Anguish red
+	tabInactive = { 0.1, 0.1, 0.12, 1 },
+	tabActive = { 0.15, 0.15, 0.18, 1 }
 }
 
 -- Forward declaration (defined after PRESETS)
@@ -94,7 +94,7 @@ local function CreateModernCheckbox(parent, label, tooltip, setting, yOffset)
 	UpdateVisual()
 
 	cb:SetScript("OnClick", function(self)
-	-- Don't process clicks if checkbox is disabled (use manual tracking)
+		-- Don't process clicks if checkbox is disabled (use manual tracking)
 		if self.isManuallyDisabled then
 			self:SetChecked(not self:GetChecked()) -- Revert the click
 			return
@@ -104,9 +104,10 @@ local function CreateModernCheckbox(parent, label, tooltip, setting, yOffset)
 	end)
 
 	local disabledTooltip = nil
-	function cb:SetDisabledTooltip(text)
-		disabledTooltip = text
+	function cb:SetDisabledTooltip(tooltipText)
+		disabledTooltip = tooltipText
 	end
+
 	cb:SetScript("OnEnter", function(self)
 		if self.isManuallyDisabled and disabledTooltip then
 			cbBorder:SetColorTexture(unpack(COLORS.danger))
@@ -127,7 +128,7 @@ local function CreateModernCheckbox(parent, label, tooltip, setting, yOffset)
 		end
 	end)
 	cb:SetScript("OnLeave", function(self)
-	-- Always reset to neutral gray border on leave (danger color only on hover)
+		-- Always reset to neutral gray border on leave (danger color only on hover)
 		cbBorder:SetColorTexture(0.3, 0.3, 0.35, 1)
 		GameTooltip:Hide()
 	end)
@@ -172,7 +173,7 @@ local function CreateModernSlider(parent, label, tooltip, setting, minVal, maxVa
 	trackFill:SetColorTexture(unpack(COLORS.sliderFill))
 
 	-- Slider - create with unique name to avoid nil issues
-	local sliderName = "CozyCampsSlider" .. setting
+	local sliderName = "CozierCampsSlider" .. setting
 	local slider = CreateFrame("Slider", sliderName, container, "OptionsSliderTemplate")
 	slider:SetPoint("TOPLEFT", trackBg, "TOPLEFT", 0, 3)
 	slider:SetSize(280, 12)
@@ -463,7 +464,7 @@ local function ApplyPreset(presetKey)
 	end
 
 	UpdatePresetButtonVisuals()
-	print("|cff88CCFFCozyCamps:|r Applied preset: " .. preset.name)
+	print("|cff88CCFFCozierCamps:|r Applied preset: " .. preset.name)
 end
 
 local presetButtons = {}
@@ -617,7 +618,7 @@ local function CreateGeneralTab(parent)
 	-- Preset description
 	local presetDesc = content:CreateFontString(nil, "OVERLAY", "GameFontNormalSmall")
 	presetDesc:SetPoint("TOPLEFT", 30, y)
-	presetDesc:SetText("Choose a preset to quickly configure CozyCamps:")
+	presetDesc:SetText("Choose a preset to quickly configure CozierCamps:")
 	presetDesc:SetTextColor(unpack(COLORS.textDim))
 	y = y - 25
 
@@ -655,16 +656,16 @@ local function CreateGeneralTab(parent)
 	_, o = CreateSectionHeader(content, "Core Settings", y)
 	y = y + o
 
-	_, o = CreateModernCheckbox(content, "Enable CozyCamps", "Master toggle for all CozyCamps features.", "enabled", y)
+	_, o = CreateModernCheckbox(content, "Enable CozierCamps", "Master toggle for all CozierCamps features.", "enabled", y)
 	y = y + o
 
 	_, o = CreateModernCheckbox(content, "Lock Meters", "Prevent meters from being moved by dragging.", "metersLocked",
-		y)
+			y)
 	y = y + o
 
 	_, o = CreateModernCheckbox(content, "HP Tunnel Vision",
-		"Adds a gradual tunnel vision effect as HP decreases. The effect intensifies at 80%, 60%, 40%, and 20% HP thresholds.",
-		"hpTunnelVisionEnabled", y)
+			"Adds a gradual tunnel vision effect as HP decreases. The effect intensifies at 80%, 60%, 40%, and 20% HP thresholds.",
+			"hpTunnelVisionEnabled", y)
 	y = y + o
 	y = y - 10
 
@@ -674,34 +675,34 @@ local function CreateGeneralTab(parent)
 
 	-- Display mode dropdown (bar vs vial)
 	_, o = CreateModernDropdown(content, "Display Mode", "Choose between horizontal bars or potion vial style.",
-		"meterDisplayMode", {"Bar", "Vial"}, y, {"Traditional horizontal progress bars.",
-			"Potion bottle style with vertical fill."}, {"bar", "vial"})
+			"meterDisplayMode", { "Bar", "Vial" }, y, { "Traditional horizontal progress bars.",
+														"Potion bottle style with vertical fill." }, { "bar", "vial" })
 	y = y + o
 	_, o = CreateModernSlider(content, "Meter Scale", "Scale all meters up or down (50% to 150%).", "meterScale", 0.5,
-		1.5, 0.05, y, function(v)
-			return string.format("%.0f%%", v * 100)
-		end)
+			1.5, 0.05, y, function(v)
+				return string.format("%.0f%%", v * 100)
+			end)
 	y = y + o
 	_, o = CreateModernDropdown(content, "Tooltip Display", "How much information to show in meter tooltips.",
-		"tooltipDisplayMode", {"Detailed", "Minimal", "Disabled"}, y,
-		{"Full explanations with recovery methods, checkpoints, and pause conditions.",
-			"Just current values, trends, and active effects. No how-to information.",
-			"No tooltips shown when hovering over meters."},
-		{"detailed", "minimal", "disabled"})
+			"tooltipDisplayMode", { "Detailed", "Minimal", "Disabled" }, y,
+			{ "Full explanations with recovery methods, checkpoints, and pause conditions.",
+			  "Just current values, trends, and active effects. No how-to information.",
+			  "No tooltips shown when hovering over meters." },
+			{ "detailed", "minimal", "disabled" })
 	y = y + o
 
-	local textureNames = {"Blizzard", "Blizzard Raid", "Smooth", "Flat", "Gloss", "Minimalist", "Otravi", "Striped",
-		"Solid"}
+	local textureNames = { "Blizzard", "Blizzard Raid", "Smooth", "Flat", "Gloss", "Minimalist", "Otravi", "Striped",
+						   "Solid" }
 	_, o = CreateModernDropdown(content, "Bar Texture", "Visual style for the meter bars.", "meterBarTexture",
-		textureNames, y)
+			textureNames, y)
 	y = y + o
-	local fontNames = {"Default", "Friz Quadrata", "Arial Narrow", "Skurri", "Morpheus", "2002", "2002 Bold",
-		"Express Way", "Nimrod MT"}
+	local fontNames = { "Default", "Friz Quadrata", "Arial Narrow", "Skurri", "Morpheus", "2002", "2002 Bold",
+						"Express Way", "Nimrod MT" }
 	_, o = CreateModernDropdown(content, "General Font", "Font for all addon text. 'Default' inherits from UI.",
-		"generalFont", fontNames, y)
+			"generalFont", fontNames, y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Hide Vial Text", "Hide the percentage numbers on potion vials.",
-		"hideVialText", y)
+			"hideVialText", y)
 	y = y + o
 
 	return content
@@ -718,16 +719,16 @@ local function CreateFireTab(parent)
 	_, o = CreateSectionHeader(content, "Fire Detection", y)
 	y = y + o
 	_, o = CreateModernDropdown(content, "Detection Mode", "How fire proximity is detected", "fireDetectionMode",
-		{"Auto Detect", "Manual Rest Mode"}, y, {"Automatically detect nearby campfires.",
-			"Use /rest command to activate. More performance-friendly."})
+			{ "Auto Detect", "Manual Rest Mode" }, y, { "Automatically detect nearby campfires.",
+														"Use /rest command to activate. More performance-friendly." })
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Detect Player Campfires", "Count Basic Campfire spell as a rest point.",
-		"detectPlayerCampfires", y)
+			"detectPlayerCampfires", y)
 	y = y + o
 	_, o = CreateModernSlider(content, "Detection Range", "How close to be considered 'near fire'.", "campfireRange", 2,
-		4, 1, y, function(v)
-			return v .. " yards"
-		end)
+			4, 1, y, function(v)
+				return v .. " yards"
+			end)
 	y = y + o
 	y = y - 10
 
@@ -735,20 +736,20 @@ local function CreateFireTab(parent)
 	_, o = CreateSectionHeader(content, "Fire Restrictions", y)
 	y = y + o
 	_, o = CreateModernDropdown(content, "Show Action Bars", "When action bars are visible (requires level 6+)",
-		"hideActionBarsMode", {"Always Visible", "Near Fire or Rested", "Rested Areas Only"}, y,
-		{"Action bars always visible (restriction disabled).", "Show near campfires, in inns/cities, on taxi, or dead.",
-			"Show only in rested areas (inns/cities)."})
+			"hideActionBarsMode", { "Always Visible", "Near Fire or Rested", "Rested Areas Only" }, y,
+			{ "Action bars always visible (restriction disabled).", "Show near campfires, in inns/cities, on taxi, or dead.",
+			  "Show only in rested areas (inns/cities)." })
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Block Map Access",
-		"Prevent opening the map when not rested or near a campfire. Requires level 6+.", "blockMap", y)
+			"Prevent opening the map when not rested or near a campfire. Requires level 6+.", "blockMap", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Hide Minimap with Action Bars",
-		"Also fade the minimap when action bars are hidden. Constitution override (25%) will still hide it.",
-		"hideMinimapWithBars", y)
+			"Also fade the minimap when action bars are hidden. Constitution override (25%) will still hide it.",
+			"hideMinimapWithBars", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Show Survival Icons on Map",
-		"Display icons on the world map for campfires, inns, and first aid trainers in the current zone.",
-		"showSurvivalIcons", y)
+			"Display icons on the world map for campfires, inns, and first aid trainers in the current zone.",
+			"showSurvivalIcons", y)
 	y = y + o
 
 	-- Logic to disable Survival Icons checkbox in Manual Rest Mode
@@ -759,7 +760,7 @@ local function CreateFireTab(parent)
 		local label = control and control.label
 		if cb then
 			if isManualMode then
-			-- Disable in Manual Rest Mode with red styling
+				-- Disable in Manual Rest Mode with red styling
 				cb.isManuallyDisabled = true
 				cb:SetChecked(false)
 				CC.SetSetting("showSurvivalIcons", false)
@@ -767,14 +768,14 @@ local function CreateFireTab(parent)
 					control.update()
 				end
 				cb:SetDisabledTooltip(
-					"Map icons are disabled in Manual Rest Mode for performance. Switch to Auto Detect mode to enable icons.")
+						"Map icons are disabled in Manual Rest Mode for performance. Switch to Auto Detect mode to enable icons.")
 				if label then
 					label:SetTextColor(0.5, 0.5, 0.5, 1)
 				end
 				cb:GetParent():SetBackdropColor(0.12, 0.12, 0.12, 0.7)
 				cb:GetParent():SetBackdropBorderColor(unpack(COLORS.danger))
 			else
-			-- Re-enable checkbox in Auto Detect mode
+				-- Re-enable checkbox in Auto Detect mode
 				cb.isManuallyDisabled = false
 				cb:SetDisabledTooltip(nil)
 				if label then
@@ -795,7 +796,7 @@ local function CreateFireTab(parent)
 	UpdateSurvivalIconsState()
 
 	_, o = CreateModernCheckbox(content, "Play Sound Near Fire", "Play a sound when you enter campfire range.",
-		"playSoundNearFire", y)
+			"playSoundNearFire", y)
 	y = y + o
 
 	return content
@@ -812,17 +813,17 @@ local function CreateSurvivalTab(parent)
 	_, o = CreateSectionHeader(content, "Anguish System", y, COLORS.Anguish)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Enable Anguish", "Screen overlay intensifies as you take damage.",
-		"AnguishEnabled", y)
+			"AnguishEnabled", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Innkeepers Heal Anguish",
-		"Talking to an innkeeper heals your Anguish up to 85% vitality.", "innkeeperHealsAnguish", y)
+			"Talking to an innkeeper heals your Anguish up to 85% vitality.", "innkeeperHealsAnguish", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Play Relief Sound",
-		"Play a soothing sound when your Anguish is healed by an innkeeper or first aid trainer.", "playSoundAnguishRelief", y)
+			"Play a soothing sound when your Anguish is healed by an innkeeper or first aid trainer.", "playSoundAnguishRelief", y)
 	y = y + o
 	_, o = CreateModernDropdown(content, "Difficulty", nil, "AnguishScale",
-		CC.GetAnguishScaleNames and CC.GetAnguishScaleNames() or {"Default", "Hard", "Insane"}, y,
-		CC.GetAnguishScaleTooltips and CC.GetAnguishScaleTooltips() or nil)
+			CC.GetAnguishScaleNames and CC.GetAnguishScaleNames() or { "Default", "Hard", "Insane" }, y,
+			CC.GetAnguishScaleTooltips and CC.GetAnguishScaleTooltips() or nil)
 	y = y + o
 	y = y - 10
 
@@ -830,71 +831,71 @@ local function CreateSurvivalTab(parent)
 	_, o = CreateSectionHeader(content, "Exhaustion System", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Enable Exhaustion",
-		"Builds while moving, decays near fires or in rested areas.", "exhaustionEnabled", y)
+			"Builds while moving, decays near fires or in rested areas.", "exhaustionEnabled", y)
 	y = y + o
 	y = y - 10
 
 	-- Hunger System (Third)
-	local HUNGER_COLOR = {0.9, 0.6, 0.2, 1} -- Orange/amber
+	local HUNGER_COLOR = { 0.9, 0.6, 0.2, 1 } -- Orange/amber
 	_, o = CreateSectionHeader(content, "Hunger System", y, HUNGER_COLOR)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Enable Hunger",
-		"Track hunger that builds from movement and activity. Eating food reduces hunger, with checkpoints based on location.",
-		"hungerEnabled", y)
+			"Track hunger that builds from movement and activity. Eating food reduces hunger, with checkpoints based on location.",
+			"hungerEnabled", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Innkeepers Reset Hunger",
-		"Talking to an innkeeper heals your Hunger up to 85% satiation.", "innkeeperResetsHunger", y)
+			"Talking to an innkeeper heals your Hunger up to 85% satiation.", "innkeeperResetsHunger", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Play Relief Sound",
-		"Play a pleasant sound when your Hunger is satisfied by talking to a cooking trainer.", "playSoundHungerRelief", y)
+			"Play a pleasant sound when your Hunger is satisfied by talking to a cooking trainer.", "playSoundHungerRelief", y)
 	y = y + o
 	_, o = CreateModernSlider(content, "Max Darkness",
-		"Maximum screen vignette darkness when fully hungry (100%). Creates a subtle darkening around screen edges.",
-		"hungerMaxDarkness", 0, 0.75, 0.05, y, function(v)
-			return string.format("%.0f%%", v * 100)
-		end)
+			"Maximum screen vignette darkness when fully hungry (100%). Creates a subtle darkening around screen edges.",
+			"hungerMaxDarkness", 0, 0.75, 0.05, y, function(v)
+				return string.format("%.0f%%", v * 100)
+			end)
 	y = y + o
 	y = y - 10
 
 	-- Thirst System (Fourth)
-	local THIRST_COLOR = {0.4, 0.7, 1.0, 1} -- Blue
+	local THIRST_COLOR = { 0.4, 0.7, 1.0, 1 } -- Blue
 	_, o = CreateSectionHeader(content, "Thirst System", y, THIRST_COLOR)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Enable Thirst",
-		"Track thirst that builds from movement and activity. Drinking reduces thirst, with checkpoints based on location. Hot temperatures increase thirst drain.",
-		"thirstEnabled", y)
+			"Track thirst that builds from movement and activity. Drinking reduces thirst, with checkpoints based on location. Hot temperatures increase thirst drain.",
+			"thirstEnabled", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Innkeepers Reset Thirst",
-		"Talking to an innkeeper heals your Thirst up to 85% hydration.", "innkeeperResetsThirst", y)
+			"Talking to an innkeeper heals your Thirst up to 85% hydration.", "innkeeperResetsThirst", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Play Relief Sound",
-		"Play a pleasant sound when your Thirst is satisfied by talking to a cooking trainer.", "playSoundThirstRelief",
-		y)
+			"Play a pleasant sound when your Thirst is satisfied by talking to a cooking trainer.", "playSoundThirstRelief",
+			y)
 	y = y + o
 	_, o = CreateModernSlider(content, "Max Darkness",
-		"Maximum screen vignette darkness when fully thirsty (100%). Creates a subtle darkening around screen edges with a blue tint.",
-		"thirstMaxDarkness", 0, 0.75, 0.05, y, function(v)
-			return string.format("%.0f%%", v * 100)
-		end)
+			"Maximum screen vignette darkness when fully thirsty (100%). Creates a subtle darkening around screen edges with a blue tint.",
+			"thirstMaxDarkness", 0, 0.75, 0.05, y, function(v)
+				return string.format("%.0f%%", v * 100)
+			end)
 	y = y + o
 	y = y - 10
 
 	-- Constitution System (NEW)
 	y = y - 10 -- Extra spacing before
-	local CONSTITUTION_COLOR = {0.6, 0.9, 0.6, 1} -- Green
+	local CONSTITUTION_COLOR = { 0.6, 0.9, 0.6, 1 } -- Green
 	_, o = CreateSectionHeader(content, "Constitution System", y, CONSTITUTION_COLOR)
 	y = y + o
 	y = y - 8 -- Extra spacing before checkbox
 	local constitutionCheckbox, constitutionOffset = CreateModernCheckbox(content, "Enable Constitution",
-		"Combines all survival meters into one overall health score. Progressively hides UI as constitution drops:\n\n" ..
-		"• Below 75%: Target frame & nameplates hidden\n" ..
-		"• Below 50%: Player frame hidden\n" ..
-		"• Below 25%: Action bars, map disabled\n\n" ..
-		"Requires at least two other meters enabled.",
-		"constitutionEnabled", y)
+			"Combines all survival meters into one overall health score. Progressively hides UI as constitution drops:\n\n" ..
+					"• Below 75%: Target frame & nameplates hidden\n" ..
+					"• Below 50%: Player frame hidden\n" ..
+					"• Below 25%: Action bars, map disabled\n\n" ..
+					"Requires at least two other meters enabled.",
+			"constitutionEnabled", y)
 	y = y + constitutionOffset
 	_, o = CreateModernCheckbox(content, "Play Heartbeat Sound",
-		"Play a looping heartbeat sound when your Constitution drops below 25%, creating an urgent atmosphere.", "playSoundHeartbeat", y)
+			"Play a looping heartbeat sound when your Constitution drops below 25%, creating an urgent atmosphere.", "playSoundHeartbeat", y)
 	y = y + o
 	y = y - 8 -- Extra spacing after checkbox
 
@@ -922,7 +923,7 @@ local function CreateSurvivalTab(parent)
 		local label = control and control.label
 		if cb then
 			if not canEnable then
-			-- Use manual disabled tracking
+				-- Use manual disabled tracking
 				cb.isManuallyDisabled = true
 				cb:SetChecked(false)
 				CC.SetSetting("constitutionEnabled", false)
@@ -931,14 +932,14 @@ local function CreateSurvivalTab(parent)
 					control.update()
 				end
 				cb:SetDisabledTooltip(
-					"Enable at least two other meters (Exhaustion, Anguish, Hunger, Thirst, Temperature) to unlock Constitution.")
+						"Enable at least two other meters (Exhaustion, Anguish, Hunger, Thirst, Temperature) to unlock Constitution.")
 				if label then
 					label:SetTextColor(0.5, 0.5, 0.5, 1)
 				end
 				cb:GetParent():SetBackdropColor(0.12, 0.12, 0.12, 0.7)
 				cb:GetParent():SetBackdropBorderColor(unpack(COLORS.danger))
 			else
-			-- Re-enable checkbox
+				-- Re-enable checkbox
 				cb.isManuallyDisabled = false
 				cb:SetDisabledTooltip(nil)
 				if label then
@@ -950,24 +951,24 @@ local function CreateSurvivalTab(parent)
 		end
 	end
 	-- Temperature System (Fifth/Last)
-	local TEMP_COLOR = {1.0, 0.7, 0.3, 1} -- Warm orange/yellow
+	local TEMP_COLOR = { 1.0, 0.7, 0.3, 1 } -- Warm orange/yellow
 	_, o = CreateSectionHeader(content, "Temperature System", y, TEMP_COLOR)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Enable Temperature",
-		"Track temperature based on zones, weather, and activities. Cold zones make you cold, hot zones make you hot.",
-		"temperatureEnabled", y)
+			"Track temperature based on zones, weather, and activities. Cold zones make you cold, hot zones make you hot.",
+			"temperatureEnabled", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Manual Weather Toggle",
-		"Show a weather toggle button below the temperature meter. Click it to simulate current weather effects (rain, snow, dust storms) since Classic WoW cannot detect weather automatically. Only available in zones where weather can occur.",
-		"manualWeatherEnabled", y)
+			"Show a weather toggle button below the temperature meter. Click it to simulate current weather effects (rain, snow, dust storms) since Classic WoW cannot detect weather automatically. Only available in zones where weather can occur.",
+			"manualWeatherEnabled", y)
 	y = y + o
 	_, o = CreateModernCheckbox(content, "Wetness Screen Effect",
-		"Show a subtle water droplet overlay on the screen when your character is wet from swimming or rain.",
-		"wetScreenEffectEnabled", y)
+			"Show a subtle water droplet overlay on the screen when your character is wet from swimming or rain.",
+			"wetScreenEffectEnabled", y)
 	y = y + o
 
 	-- Hook constitution checkbox state update AFTER all meter checkboxes are created
-	for _, dep in ipairs({"exhaustionEnabled", "AnguishEnabled", "hungerEnabled", "thirstEnabled", "temperatureEnabled"}) do
+	for _, dep in ipairs({ "exhaustionEnabled", "AnguishEnabled", "hungerEnabled", "thirstEnabled", "temperatureEnabled" }) do
 		if controls[dep] and controls[dep].checkbox then
 			controls[dep].checkbox:HookScript("OnClick", UpdateConstitutionCheckboxState)
 		end
@@ -983,7 +984,7 @@ local function CreatePanel()
 	end
 
 	-- Main frame
-	settingsFrame = CreateFrame("Frame", "CozyCampsSettingsFrame", UIParent, "BackdropTemplate")
+	settingsFrame = CreateFrame("Frame", "CozierCampsSettingsFrame", UIParent, "BackdropTemplate")
 	settingsFrame:SetSize(400, 650)
 	settingsFrame:SetPoint("CENTER")
 	settingsFrame:SetBackdrop({
@@ -1028,7 +1029,7 @@ local function CreatePanel()
 	local fireIcon = iconFrame:CreateTexture(nil, "ARTWORK")
 	fireIcon:SetSize(36, 36)
 	fireIcon:SetPoint("CENTER")
-	fireIcon:SetTexture("Interface\\AddOns\\CozyCamps\\assets\\mainlogo.png")
+	fireIcon:SetTexture("Interface\\AddOns\\CozierCamps\\assets\\mainlogo.png")
 	fireIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
 
 	-- Animated glow pulse
@@ -1051,12 +1052,12 @@ local function CreatePanel()
 	-- Title with stylized text
 	local titleShadow = header:CreateFontString(nil, "ARTWORK", "GameFontNormalLarge")
 	titleShadow:SetPoint("LEFT", iconFrame, "RIGHT", 11, -1)
-	titleShadow:SetText("CozyCamps")
+	titleShadow:SetText("CozierCamps")
 	titleShadow:SetTextColor(0, 0, 0, 0.5)
 
 	local title = header:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	title:SetPoint("LEFT", iconFrame, "RIGHT", 10, 0)
-	title:SetText("CozyCamps")
+	title:SetText("CozierCamps")
 	title:SetTextColor(1.0, 0.75, 0.35, 1)
 
 	-- Subtitle
@@ -1202,7 +1203,7 @@ local function CreatePanel()
 		resetText:SetTextColor(0.6, 0.6, 0.6, 1)
 	end)
 	resetBtn:SetScript("OnClick", function()
-		StaticPopup_Show("COZYCAMPS_RESET")
+		StaticPopup_Show("CozierCamps_RESET")
 	end)
 
 	-- Reload UI button (center)
@@ -1258,8 +1259,8 @@ local function CreatePanel()
 	end)
 
 	-- Reset popup
-	StaticPopupDialogs["COZYCAMPS_RESET"] = {
-		text = "Reset all CozyCamps settings to defaults?",
+	StaticPopupDialogs["CozierCamps_RESET"] = {
+		text = "Reset all CozierCamps settings to defaults?",
 		button1 = "Yes",
 		button2 = "No",
 		OnAccept = function()
@@ -1280,14 +1281,14 @@ local function CreatePanel()
 	}
 
 	-- ESC to close
-	tinsert(UISpecialFrames, "CozyCampsSettingsFrame")
+	tinsert(UISpecialFrames, "CozierCampsSettingsFrame")
 
 	return settingsFrame
 end
 
 CC.RegisterCallback("SETTINGS_CHANGED", function(key)
 	if key == "ALL" then
-	-- Reset was called - update all controls
+		-- Reset was called - update all controls
 		for setting, ctrl in pairs(controls) do
 			if ctrl.checkbox then
 				ctrl.checkbox:SetChecked(CC.GetSetting(setting))
@@ -1311,7 +1312,7 @@ function CC.ToggleSettings()
 	if f:IsShown() then
 		f:Hide()
 	else
-	-- Refresh all controls
+		-- Refresh all controls
 		for setting, ctrl in pairs(controls) do
 			if ctrl.checkbox then
 				ctrl.checkbox:SetChecked(CC.GetSetting(setting))

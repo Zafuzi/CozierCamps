@@ -1,36 +1,36 @@
--- CozyCamps - ActionBars.lua
+-- CozierCamps - ActionBars.lua
 -- Standalone action bar hiding system with smooth transitions
-local CC = CozyCamps
+local CC = CozierCamps
 
 -- Action bars with numbered buttons (Classic Era)
-local ACTION_BAR_FRAMES = {"MainMenuBar", "MultiBarBottomLeft", "MultiBarBottomRight", "MultiBarLeft", "MultiBarRight",
+local ACTION_BAR_FRAMES = { "MainMenuBar", "MultiBarBottomLeft", "MultiBarBottomRight", "MultiBarLeft", "MultiBarRight",
 
-	"BonusActionBarFrame", "ShapeshiftBarFrame"}
+							"BonusActionBarFrame", "ShapeshiftBarFrame" }
 
 -- Additional UI frames to hide (no numbered buttons)
-local EXTRA_UI_FRAMES = {"StanceBarFrame", "PetActionBar", "PetActionBarFrame",
+local EXTRA_UI_FRAMES = { "StanceBarFrame", "PetActionBar", "PetActionBarFrame",
 	-- Action bar page arrows (Classic Era names)
-	"ActionBarUpButton", "ActionBarDownButton", "MainMenuBarPageNumber",
+						  "ActionBarUpButton", "ActionBarDownButton", "MainMenuBarPageNumber",
 	-- Action bar page switching arrows and art
-	"MainMenuBarArtFrame", "MainMenuBarArtFrameBackground", "ActionBarPageUpButton",
-	"ActionBarPageDownButton", -- Bag buttons
-	"MainMenuBarBackpackButton", "CharacterBag0Slot", "CharacterBag1Slot", "CharacterBag2Slot", "CharacterBag3Slot",
-	"BagBarExpandToggle", -- Micro menu buttons
-	"CharacterMicroButton", "SpellbookMicroButton", "TalentMicroButton", "QuestLogMicroButton", "SocialsMicroButton",
-	"WorldMapMicroButton", "MainMenuMicroButton", "HelpMicroButton", "AchievementMicroButton",
-	"LFDMicroButton", "CollectionsMicroButton", "EJMicroButton", "StoreMicroButton",
+						  "MainMenuBarArtFrame", "MainMenuBarArtFrameBackground", "ActionBarPageUpButton",
+						  "ActionBarPageDownButton", -- Bag buttons
+						  "MainMenuBarBackpackButton", "CharacterBag0Slot", "CharacterBag1Slot", "CharacterBag2Slot", "CharacterBag3Slot",
+						  "BagBarExpandToggle", -- Micro menu buttons
+						  "CharacterMicroButton", "SpellbookMicroButton", "TalentMicroButton", "QuestLogMicroButton", "SocialsMicroButton",
+						  "WorldMapMicroButton", "MainMenuMicroButton", "HelpMicroButton", "AchievementMicroButton",
+						  "LFDMicroButton", "CollectionsMicroButton", "EJMicroButton", "StoreMicroButton",
 	-- Classic UI elements
-	"MainMenuBarLeftEndCap", "MainMenuBarRightEndCap", "MainMenuBarTexture0",
-	"MainMenuBarTexture1", "MainMenuBarTexture2", "MainMenuBarTexture3", "MainMenuExpBar",
-	"ReputationWatchBar", "MainMenuBarMaxLevelBar",
-	"MicroButtonAndBagsBar", "BagsBar", "MicroMenu", "MainMenuBarVehicleLeaveButton",
-	"MainStatusTrackingBarContainer", "StatusTrackingBarManager"}
+						  "MainMenuBarLeftEndCap", "MainMenuBarRightEndCap", "MainMenuBarTexture0",
+						  "MainMenuBarTexture1", "MainMenuBarTexture2", "MainMenuBarTexture3", "MainMenuExpBar",
+						  "ReputationWatchBar", "MainMenuBarMaxLevelBar",
+						  "MicroButtonAndBagsBar", "BagsBar", "MicroMenu", "MainMenuBarVehicleLeaveButton",
+						  "MainStatusTrackingBarContainer", "StatusTrackingBarManager" }
 
 -- Minimap frames (hidden separately, controlled by hideMinimapWithBars setting)
 -- Constitution override will still hide these regardless of the setting
-local MINIMAP_FRAMES = {"MinimapCluster", "Minimap", "MinimapBorder", "MinimapBorderTop", "MinimapZoomIn",
-	"MinimapZoomOut", "MinimapBackdrop", "GameTimeFrame", "MiniMapTracking",
-	"MiniMapMailFrame", "MiniMapBattlefieldFrame", "MiniMapWorldMapButton"}
+local MINIMAP_FRAMES = { "MinimapCluster", "Minimap", "MinimapBorder", "MinimapBorderTop", "MinimapZoomIn",
+						 "MinimapZoomOut", "MinimapBackdrop", "GameTimeFrame", "MiniMapTracking",
+						 "MiniMapMailFrame", "MiniMapBattlefieldFrame", "MiniMapWorldMapButton" }
 
 local barsHidden = false
 local introShown = false
@@ -57,8 +57,8 @@ local animFrame = CreateFrame("Frame")
 -- Check if an action bar should be shown when restoring visibility
 -- Uses recorded visibility state first (most reliable), falls back to settings checks
 local function IsBarEnabledInSettings(frameName)
--- If we recorded this bar's visibility state, use that
--- This is the most reliable way to restore bars after hiding
+	-- If we recorded this bar's visibility state, use that
+	-- This is the most reliable way to restore bars after hiding
 	if frameVisibilityState[frameName] == true then
 		return true
 	end
@@ -102,14 +102,14 @@ local function IsBarEnabledInSettings(frameName)
 end
 
 local function SetBarsAlpha(alpha)
--- Handle action bars with numbered buttons
+	-- Handle action bars with numbered buttons
 	for _, frameName in ipairs(ACTION_BAR_FRAMES) do
 		local frame = _G[frameName]
 		if frame then
 			if alpha > 0 then
-			-- SHOWING: Only restore bars that are enabled in WoW settings AND were visible before
+				-- SHOWING: Only restore bars that are enabled in WoW settings AND were visible before
 				if IsBarEnabledInSettings(frameName) and frameVisibilityState[frameName] ~= false then
-				-- Skip Show() during combat to avoid protected function errors
+					-- Skip Show() during combat to avoid protected function errors
 					if not frame:IsShown() and not InCombatLockdown() then
 						frame:Show()
 					end
@@ -117,7 +117,7 @@ local function SetBarsAlpha(alpha)
 					-- Restore button visibility
 					for i = 1, 12 do
 						local buttonName = frameName == "MainMenuBar" and ("ActionButton" .. i) or
-						(frameName .. "Button" .. i)
+								(frameName .. "Button" .. i)
 						local button = _G[buttonName]
 						if button then
 							button:SetAlpha(1)
@@ -128,8 +128,8 @@ local function SetBarsAlpha(alpha)
 					end
 				end
 			else
-			-- HIDING: Hide all visible bars regardless of settings
-			-- Record visibility state before hiding
+				-- HIDING: Hide all visible bars regardless of settings
+				-- Record visibility state before hiding
 				if frameVisibilityState[frameName] == nil then
 					frameVisibilityState[frameName] = frame:IsShown()
 				end
@@ -142,7 +142,7 @@ local function SetBarsAlpha(alpha)
 				-- Hide all action button cooldown/GCD flash overlays
 				for i = 1, 12 do
 					local buttonName = frameName == "MainMenuBar" and ("ActionButton" .. i) or
-					(frameName .. "Button" .. i)
+							(frameName .. "Button" .. i)
 					local button = _G[buttonName]
 					if button then
 						button:SetAlpha(0)
@@ -168,17 +168,17 @@ local function SetBarsAlpha(alpha)
 		local frame = _G[frameName]
 		if frame then
 			if alpha > 0 then
-			-- SHOWING: Only restore frames that are enabled AND were visible before
+				-- SHOWING: Only restore frames that are enabled AND were visible before
 				if IsBarEnabledInSettings(frameName) and frameVisibilityState[frameName] == true then
-				-- Skip Show() during combat to avoid protected function errors
+					-- Skip Show() during combat to avoid protected function errors
 					if not frame:IsShown() and not InCombatLockdown() then
 						frame:Show()
 					end
 					frame:SetAlpha(alpha)
 				end
 			else
-			-- HIDING: Hide all visible frames regardless of settings
-			-- Record visibility state before hiding
+				-- HIDING: Hide all visible frames regardless of settings
+				-- Record visibility state before hiding
 				if frameVisibilityState[frameName] == nil then
 					frameVisibilityState[frameName] = frame:IsShown()
 				end
@@ -199,7 +199,7 @@ local function SetBarsAlpha(alpha)
 			local frame = _G[frameName]
 			if frame then
 				if alpha > 0 then
-				-- Only show if it was visible before we hid it
+					-- Only show if it was visible before we hid it
 					if frameVisibilityState[frameName] == true then
 						if not frame:IsShown() then
 							frame:Show()
@@ -207,7 +207,7 @@ local function SetBarsAlpha(alpha)
 						frame:SetAlpha(alpha)
 					end
 				else
-				-- Record visibility state before hiding
+					-- Record visibility state before hiding
 					if frameVisibilityState[frameName] == nil then
 						frameVisibilityState[frameName] = frame:IsShown()
 					end
@@ -217,7 +217,7 @@ local function SetBarsAlpha(alpha)
 			end
 		end
 	elseif alpha > 0 then
-	-- Minimap hiding disabled and showing bars - restore minimap if it was hidden
+		-- Minimap hiding disabled and showing bars - restore minimap if it was hidden
 		for _, frameName in ipairs(MINIMAP_FRAMES) do
 			local frame = _G[frameName]
 			if frame and frameVisibilityState[frameName] == true then
@@ -233,7 +233,7 @@ local function SetBarsAlpha(alpha)
 	-- Classic's PetActionBarFrame OnUpdate expects slideTimer and timeToSlide to exist
 	local petFrame = _G["PetActionBarFrame"]
 	if petFrame then
-	-- Initialize slide-related fields if they don't exist (Classic client fix)
+		-- Initialize slide-related fields if they don't exist (Classic client fix)
 		if petFrame.slideTimer == nil then
 			petFrame.slideTimer = 0
 		end
@@ -241,7 +241,7 @@ local function SetBarsAlpha(alpha)
 			petFrame.timeToSlide = 0
 		end
 		if alpha > 0 then
-		-- Only show if it was visible before
+			-- Only show if it was visible before
 			if frameVisibilityState["PetActionBarFrame"] == true then
 				if not petFrame:IsShown() then
 					petFrame:Show()
@@ -249,13 +249,13 @@ local function SetBarsAlpha(alpha)
 				petFrame:SetAlpha(alpha)
 			end
 		else
-		-- Record visibility state before hiding
+			-- Record visibility state before hiding
 			if frameVisibilityState["PetActionBarFrame"] == nil then
 				frameVisibilityState["PetActionBarFrame"] = petFrame:IsShown()
 			end
 			petFrame:SetAlpha(0)
-		-- Don't call Hide() on PetActionBarFrame in Classic - just use alpha
-		-- The frame's OnUpdate handler may still run and expects slide fields
+			-- Don't call Hide() on PetActionBarFrame in Classic - just use alpha
+			-- The frame's OnUpdate handler may still run and expects slide fields
 		end
 	end
 
@@ -263,7 +263,7 @@ local function SetBarsAlpha(alpha)
 	-- These may be nested children or use different naming conventions
 	local mainMenuBar = _G["MainMenuBar"]
 	if mainMenuBar then
-	-- Try to find page number as a child
+		-- Try to find page number as a child
 		local pageNumber = mainMenuBar.ActionBarPageNumber or mainMenuBar.PageNumber
 		if pageNumber then
 			local pageKey = "MainMenuBar.PageNumber"
@@ -284,7 +284,7 @@ local function SetBarsAlpha(alpha)
 		end
 
 		-- Try to hide all children that look like page buttons
-		for _, child in pairs({mainMenuBar:GetChildren()}) do
+		for _, child in pairs({ mainMenuBar:GetChildren() }) do
 			local name = child:GetName()
 			if name and (name:find("Page") or name:find("Arrow") or name:find("UpButton") or name:find("DownButton")) then
 				local childKey = name or tostring(child)
@@ -309,11 +309,11 @@ local function SetBarsAlpha(alpha)
 	-- Also check MainMenuBarArtFrame for page controls
 	local artFrame = _G["MainMenuBarArtFrame"]
 	if artFrame then
-		for _, child in pairs({artFrame:GetChildren()}) do
+		for _, child in pairs({ artFrame:GetChildren() }) do
 			local name = child:GetName()
 			if name and
-			(name:find("Page") or name:find("Arrow") or name:find("UpButton") or name:find("DownButton") or
-			name:find("Number")) then
+					(name:find("Page") or name:find("Arrow") or name:find("UpButton") or name:find("DownButton") or
+							name:find("Number")) then
 				local childKey = name or tostring(child)
 				if alpha > 0 then
 					if frameVisibilityState[childKey] == true then
@@ -332,7 +332,7 @@ local function SetBarsAlpha(alpha)
 			end
 			-- Also hide unnamed children that might be page controls
 			if not name then
-			-- Check if it has button-like properties
+				-- Check if it has button-like properties
 				if child.GetNormalTexture or child.SetNormalTexture then
 					local childKey = tostring(child)
 					if alpha > 0 then
@@ -396,7 +396,7 @@ local function OnUpdate(self, elapsed)
 
 	local diff = targetAlpha - currentAlpha
 	if math.abs(diff) < 0.01 then
-	-- Animation complete
+		-- Animation complete
 		currentAlpha = targetAlpha
 		SetBarsAlpha(currentAlpha)
 		isAnimating = false
@@ -412,7 +412,7 @@ local function OnUpdate(self, elapsed)
 			CC.Debug("Action bars shown (fade complete)", "general")
 		end
 	else
-	-- Animate
+		-- Animate
 		local change = FADE_SPEED * elapsed
 		if diff > 0 then
 			currentAlpha = math.min(targetAlpha, currentAlpha + change)
@@ -437,7 +437,7 @@ local function FadeBarsTo(alpha)
 
 	-- If showing from hidden state, show frames with proper ordering for layout
 	if alpha > 0 and currentAlpha <= 0 then
-	-- First, show MainMenuBar and status tracking bars (these affect layout of other bars)
+		-- First, show MainMenuBar and status tracking bars (these affect layout of other bars)
 		local mainMenuBar = _G["MainMenuBar"]
 		if mainMenuBar and frameVisibilityState["MainMenuBar"] ~= false then
 			mainMenuBar:Show()
@@ -571,7 +571,7 @@ local function FadeMinimapTo(alpha)
 end
 
 local function UpdateActionBarVisibility()
--- Constitution override takes absolute priority - hide everything immediately
+	-- Constitution override takes absolute priority - hide everything immediately
 	if constitutionOverrideActive then
 		HideBars()
 		return
@@ -614,15 +614,15 @@ local function ShowIntroPopup()
 	end
 	introShown = true
 
-	StaticPopupDialogs["COZYCAMPS_ACTIONBARS_INTRO"] = {
+	StaticPopupDialogs["CozierCamps_ACTIONBARS_INTRO"] = {
 		text = "Congratulations on reaching level " .. CC.GetMinLevel() ..
-		"!\n\nYour action bars will now be hidden when away from campfires. Find a fire or visit an inn to access them. Alternatively, use /cozy to access settings and tailor to your liking.",
+				"!\n\nYour action bars will now be hidden when away from campfires. Find a fire or visit an inn to access them. Alternatively, use /cozy to access settings and tailor to your liking.",
 		button1 = "I Understand",
 		timeout = 0,
 		whileDead = true,
 		hideOnEscape = true
 	}
-	StaticPopup_Show("COZYCAMPS_ACTIONBARS_INTRO")
+	StaticPopup_Show("CozierCamps_ACTIONBARS_INTRO")
 end
 
 -- Event handling
@@ -640,17 +640,17 @@ frame:RegisterEvent("PLAYER_CONTROL_GAINED") -- Fires when getting off taxi
 
 frame:SetScript("OnEvent", function(self, event, arg1)
 	if event == "PLAYER_LOGIN" or event == "PLAYER_ENTERING_WORLD" then
-	-- Set initial state without animation
+		-- Set initial state without animation
 		C_Timer.After(1, function()
 			local mode = CC.GetSetting("hideActionBarsMode") or 1
 			if mode == 1 or not CC.IsPlayerEligible() then
-			-- Disabled or not eligible
+				-- Disabled or not eligible
 				currentAlpha = 1
 				targetAlpha = 1
 				barsHidden = false
 				SetBarsAlpha(1)
 			elseif mode == 3 then
-			-- Rested only
+				-- Rested only
 				if IsResting() then
 					currentAlpha = 1
 					targetAlpha = 1
@@ -684,7 +684,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
 		C_Timer.After(0.5, UpdateActionBarVisibility)
 
 	elseif event == "PLAYER_REGEN_DISABLED" then
-	-- Entering combat - hide bars immediately (no fade)
+		-- Entering combat - hide bars immediately (no fade)
 		local mode = CC.GetSetting("hideActionBarsMode") or 1
 		if mode ~= 1 and CC.IsPlayerEligible() then
 			if not InCombatLockdown() then
@@ -697,7 +697,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
 		end
 
 	elseif event == "PLAYER_REGEN_ENABLED" then
-	-- Leaving combat
+		-- Leaving combat
 		C_Timer.After(0.1, UpdateActionBarVisibility)
 
 	elseif event == "PLAYER_UPDATE_RESTING" then
@@ -707,7 +707,7 @@ frame:SetScript("OnEvent", function(self, event, arg1)
 		C_Timer.After(0.1, UpdateActionBarVisibility)
 
 	elseif event == "PLAYER_CONTROL_LOST" or event == "PLAYER_CONTROL_GAINED" then
-	-- Only respond if on taxi (ignore stealth, etc)
+		-- Only respond if on taxi (ignore stealth, etc)
 		C_Timer.After(0.2, function()
 			if UnitOnTaxi("player") or event == "PLAYER_CONTROL_GAINED" then
 				UpdateActionBarVisibility()
@@ -733,23 +733,23 @@ CC.RegisterCallback("SETTINGS_CHANGED", function(key, value)
 		if not InCombatLockdown() then
 			local hideMinimapEnabled = CC.GetSetting("hideMinimapWithBars")
 			if not hideMinimapEnabled and not constitutionOverrideActive then
-			-- Toggled OFF: Fade minimap back in smoothly
-			-- Record visibility state for frames that should be shown
+				-- Toggled OFF: Fade minimap back in smoothly
+				-- Record visibility state for frames that should be shown
 				for _, frameName in ipairs(MINIMAP_FRAMES) do
-					local frame = _G[frameName]
-					if frame and frameVisibilityState[frameName] == nil then
-						frameVisibilityState[frameName] = frame:IsShown() or frame:GetAlpha() > 0
+					local frameToFade = _G[frameName]
+					if frameToFade and frameVisibilityState[frameName] == nil then
+						frameVisibilityState[frameName] = frameToFade:IsShown() or frameToFade:GetAlpha() > 0
 					end
 				end
 				minimapCurrentAlpha = 0 -- Start from hidden
 				FadeMinimapTo(1)
 			elseif hideMinimapEnabled and barsHidden then
-			-- Toggled ON while bars are already hidden: fade out minimap smoothly
-			-- Record visibility state before hiding
+				-- Toggled ON while bars are already hidden: fade out minimap smoothly
+				-- Record visibility state before hiding
 				for _, frameName in ipairs(MINIMAP_FRAMES) do
-					local frame = _G[frameName]
-					if frame and frameVisibilityState[frameName] == nil then
-						frameVisibilityState[frameName] = frame:IsShown()
+					local frameToFade = _G[frameName]
+					if frameToFade and frameVisibilityState[frameName] == nil then
+						frameVisibilityState[frameName] = frameToFade:IsShown()
 					end
 				end
 				minimapCurrentAlpha = 1 -- Start from visible
@@ -760,10 +760,10 @@ CC.RegisterCallback("SETTINGS_CHANGED", function(key, value)
 	elseif key == "enabled" then
 		if not InCombatLockdown() then
 			if value == false then
-			-- Master toggle disabled - force show all action bars
+				-- Master toggle disabled - force show all action bars
 				ForceShowAllBars()
 			else
-			-- Master toggle enabled - apply current settings
+				-- Master toggle enabled - apply current settings
 				UpdateActionBarVisibility()
 			end
 		end

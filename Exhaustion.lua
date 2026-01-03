@@ -1,8 +1,8 @@
--- CozyCamps - Exhaustion.lua
+-- CozierCamps - Exhaustion.lua
 -- Exhaustion system - accumulates while moving, decays near fires or while resting
 -- Updated/hardened for Midnight (Retail 12.0.1 / Interface 120001)
 
-local CC = CozyCamps
+local CC = CozierCamps
 
 ------------------------------------------------------------
 -- Safe helpers (Retail/Midnight load-order safe)
@@ -50,10 +50,10 @@ local isInDungeon = false
 -- EXHAUSTION OVERLAY SYSTEM (screen darkening at 20/40/60/80)
 -- ============================================
 local EXHAUST_TEXTURES = {
-	"Interface\\AddOns\\CozyCamps\\assets\\exhaustion20.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\exhaustion40.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\exhaustion60.png",
-	"Interface\\AddOns\\CozyCamps\\assets\\exhaustion80.png"
+	"Interface\\AddOns\\CozierCamps\\assets\\exhaustion20.png",
+	"Interface\\AddOns\\CozierCamps\\assets\\exhaustion40.png",
+	"Interface\\AddOns\\CozierCamps\\assets\\exhaustion60.png",
+	"Interface\\AddOns\\CozierCamps\\assets\\exhaustion80.png"
 }
 
 local exhaustOverlayFrames = {}
@@ -87,7 +87,7 @@ local function CreateExhaustOverlayFrame(level)
 		return exhaustOverlayFrames[level]
 	end
 
-	local frame = CreateFrame("Frame", "CozyCampsExhaustOverlay_" .. level, UIParent)
+	local frame = CreateFrame("Frame", "CozierCampsExhaustOverlay_" .. level, UIParent)
 	frame:SetAllPoints(UIParent)
 	frame:SetFrameStrata("FULLSCREEN_DIALOG")
 	frame:SetFrameLevel(90 + level)
@@ -315,7 +315,7 @@ local function CheckMovementAndAccumulate(elapsed)
 		lowConstitutionPenalty = true
 		-- Show warning message (with cooldown to prevent spam)
 		if lowConstitutionWarningCooldown <= 0 then
-			print("|cffFF6600CozyCamps:|r |cffFFAAAAYou're too weak to run! Walking is safer.|r")
+			print("|cffFF6600CozierCamps:|r |cffFFAAAAYou're too weak to run! Walking is safer.|r")
 			lowConstitutionWarningCooldown = 10 -- seconds
 		end
 	end
@@ -512,7 +512,7 @@ end
 ------------------------------------------------------------
 -- Events
 ------------------------------------------------------------
-local eventFrame = CreateFrame("Frame", "CozyCampsExhaustionFrame")
+local eventFrame = CreateFrame("Frame", "CozierCampsExhaustionFrame")
 eventFrame:RegisterEvent("PLAYER_LOGIN")
 eventFrame:RegisterEvent("PLAYER_LOGOUT")
 eventFrame:RegisterEvent("PLAYER_ENTERING_WORLD")
