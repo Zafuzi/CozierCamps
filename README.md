@@ -1,9 +1,19 @@
 # CozierCamps
 
-Transform your Classic WoW experience into a survival adventure.
+Transform your WoW experience into a survival adventure.
 
-CozierCamps adds immersive survival mechanics that make campfires, inns, and the wilderness feel meaningful again. Rest by the fire to recover, manage your hunger in the wilds,
+CozierCamps adds immersive survival mechanics that makes campfires, inns, and the wilderness feel meaningful again. Rest by the fire to recover, manage your hunger in the wilds,
 brave harsh temperatures, and feel the weight of your journey through exhaustion and anguish.
+
+## Notes
+
+This is a fork of the classic [CozyCamps](https://www.curseforge.com/wow/addons/cozycamps) by [Appz](https://www.curseforge.com/members/appz/projects) to decouple and keep the
+retail version alive.
+
+## Feedback & Support
+
+Found a bug? Have a suggestion? Missing a campfire location? Let me know!
+https://github.com/Zafuzi/CozierCamps
 
 ## Features
 
@@ -19,7 +29,7 @@ lingering pain of battle. Multiple difficulty scales available.
 better recovery when resting safely. A subtle screen vignette darkens as hunger sets in.
 
 **Temperature** — The world has hot and cold zones. Freezing peaks and scorching deserts affect your survival. Weather conditions like rain, snow, and dust storms intensify the
-effects. A manual weather toggle is included since Classic WoW cannot detect weather automatically.
+effects. A manual weather toggle is included since WoW cannot detect weather automatically.
 
 **Constitution** — When running multiple survival systems together, Constitution tracks your overall resilience. This meta-meter reflects your combined survival state and unlocks
 when two or more systems are active.
@@ -114,6 +124,3 @@ Enable debug (play around with sliders and see values):
 /cozy debug
 ```
 
-## Feedback & Support
-
-Found a bug? Have a suggestion? Missing a campfire location? Let me know!
