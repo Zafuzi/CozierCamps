@@ -14,16 +14,16 @@ DebugPanel.playerName = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNor
 DebugPanel.playerName:SetPoint("TOPLEFT", DebugPanel, "TOPLEFT", 15, -35)
 
 DebugPanel.playerLevel = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-DebugPanel.playerLevel:SetPoint("TOPLEFT", DebugPanel, "TOPLEFT", 15, -50)
+DebugPanel.playerLevel:SetPoint("TOPLEFT", DebugPanel.playerName, "BOTTOMLEFT", 0, 0)
 
 DebugPanel.health = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-DebugPanel.health:SetPoint("TOPLEFT", DebugPanel, "TOPLEFT", 15, -65)
+DebugPanel.health:SetPoint("TOPLEFT", DebugPanel.playerLevel, "BOTTOMLEFT", 0, 0)
 
 DebugPanel.speed = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-DebugPanel.speed:SetPoint("TOPLEFT", DebugPanel, "TOPLEFT", 15, -80)
+DebugPanel.speed:SetPoint("TOPLEFT", DebugPanel.health, "BOTTOMLEFT", 0, 0)
 
 DebugPanel.hunger = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-DebugPanel.hunger:SetPoint("TOPLEFT", DebugPanel, "TOPLEFT", 15, -95)
+DebugPanel.hunger:SetPoint("TOPLEFT", DebugPanel.speed, "BOTTOMLEFT", 0, 0)
 
 DebugPanelChild = OpenModal("DebugPanelChild", config.width, config.height, DebugPanel)
 
