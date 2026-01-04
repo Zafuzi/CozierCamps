@@ -7,12 +7,21 @@
 ## SavedVariables:
 ## SavedVariablesPerCharacter:
 
-# INIT
+# LIB
 CozierCamps.lua
 lib/gui.lua
 lib/utils.lua
-# END INIT
+# END LIB
+
+# METERS
+Meters/MeterData.lua
+Meters/HungerMeter.lua
+# END METERS
 
 # MODALS
 components/DebugPanel.lua
 # END MODALS
+
+# KEEP THIS LAST
+init.lua
+# KEEP THIS LAST

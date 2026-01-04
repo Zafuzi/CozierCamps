@@ -55,7 +55,7 @@ function OpenModal(name, width, height, parent)
 	frame.title:SetText(name)
 
 	-- This makes escape work to close this modal
-	table.insert(UISpecialFrames, name)
+	--table.insert(UISpecialFrames, name)
 
 	frame:Hide()
 
