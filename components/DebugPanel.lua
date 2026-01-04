@@ -48,7 +48,7 @@ DebugPanel:SetScript("OnUpdate", function(self)
 	DebugPanel.resting:SetText("Resting: " .. tostring(PLAYER_STATE.resting))
 	DebugPanel.eating:SetText("Eating: " .. tostring(PLAYER_STATE.eating))
 
-	local tts = ((100 - HUNGER.current) / 100) * (TIME_TO_STARVE_IN_HOURS - (TIME_TO_STARVE_IN_HOURS * HUNGER.rate))
+	local tts = ((100 - HUNGER.current) / 100) * (TIME_TO_STARVE_IN_HOURS)
 
 	local tts_hours = 0
 	local tts_min = 0
@@ -60,7 +60,7 @@ DebugPanel:SetScript("OnUpdate", function(self)
 	tts_sec, tts_ms = math.modf(tts_sec * 60)
 
 	--DebugPanel.starving:SetText("Starving in: " .. tts)
-	DebugPanel.starving:SetText("TTS RAW: " .. floatToTwoString(tts) .. " |> Starving in: " .. tts_hours .. "h " .. tts_min .. "m " .. tts_sec .. "s ")
+	DebugPanel.starving:SetText("Satiation: " .. floatToTwoString(tts * 100, 0) .. "% |> Starving in: " .. tts_hours .. "h " .. tts_min .. "m " .. tts_sec .. "s ")
 end)
 
 DebugPanel:SetScript("OnEvent", function(self, event, arg)

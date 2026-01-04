@@ -22,7 +22,7 @@ function IsPlayerEating()
 	end)
 end
 
-local hunger = 0 -- TODO move to saved variables
+local hunger = 50 -- TODO move to saved variables
 TIME_TO_STARVE_IN_HOURS = 1 -- TODO move to save variables and a setting the user can control
 
 --- @param elapsed number the amount of time elapsed since last frame
@@ -33,6 +33,12 @@ function GetPlayerHunger(elapsed)
 end
 
 function GetHungerRate()
+	-- eating overrides everything
+	if PLAYER_STATE.activity == "idle" and PLAYER_STATE.eating then
+		-- 20s of eating = full
+		return -(100 / 20)
+	end
+
 	local rate = TIME_TO_STARVE_IN_HOURS
 
 	if PLAYER_STATE.activity == "idle" then
@@ -58,11 +64,6 @@ function GetHungerRate()
 	if PLAYER_STATE.activity == "combat" then
 		-- combat is very demanding
 		rate = TIME_TO_STARVE_IN_HOURS / 50
-	end
-
-	if PLAYER_STATE.activity == "idle" and PLAYER_STATE.eating then
-		-- 20s of eating = full
-		rate = -(100 / 20)
 	end
 
 	if PLAYER_STATE.resting then
