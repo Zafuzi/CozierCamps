@@ -9,7 +9,6 @@
 
 # INIT
 CozierCamps.lua
-lib/fsm.lua
 lib/gui.lua
 lib/utils.lua
 # END INIT
