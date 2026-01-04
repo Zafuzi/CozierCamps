@@ -25,7 +25,11 @@ DebugPanel.speed:SetPoint("TOPLEFT", DebugPanel.health, "BOTTOMLEFT", 0, 0)
 DebugPanel.hunger = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
 DebugPanel.hunger:SetPoint("TOPLEFT", DebugPanel.speed, "BOTTOMLEFT", 0, 0)
 
-DebugPanelChild = OpenModal("DebugPanelChild", config.width, config.height, DebugPanel)
+DebugPanel.resting = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+DebugPanel.resting:SetPoint("TOPLEFT", DebugPanel.hunger, "BOTTOMLEFT", 0, 0)
+
+DebugPanel.eating = DebugPanel:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+DebugPanel.eating:SetPoint("TOPLEFT", DebugPanel.resting, "BOTTOMLEFT", 0, 0)
 
 DebugPanel:SetScript("OnShow", function(self)
 	PlaySound(808)
@@ -34,10 +38,12 @@ end)
 DebugPanel:SetScript("OnUpdate", function(self)
 	DebugPanel.playerName:SetText("Character: " .. PLAYER_STATE.name)
 	DebugPanel.playerLevel:SetText("Level: " .. PLAYER_STATE.level)
-	DebugPanel.health:SetText("Health: " .. PLAYER_STATE.health)
-	DebugPanel.speed:SetText("Speed: " .. PLAYER_STATE.speed)
+	DebugPanel.health:SetText("Health: " .. floatToTwoString(PLAYER_STATE.health))
+	DebugPanel.speed:SetText("Speed: " .. floatToTwoString(PLAYER_STATE.speed))
 
-	DebugPanel.hunger:SetText("Hunger: " .. string.format("%.2f%%", HUNGER.current or 0) .. " (" .. HUNGER.state .. " x" .. HUNGER.rate .. ")")
+	DebugPanel.hunger:SetText("Hunger: " .. floatToTwoString(HUNGER.current or 0) .. " (" .. PLAYER_STATE.activity .. " @" .. floatToTwoString(HUNGER.rate, 4) .. "x)")
+	DebugPanel.resting:SetText("Resting: " .. tostring(PLAYER_STATE.resting))
+	DebugPanel.eating:SetText("Eating: " .. tostring(PLAYER_STATE.eating))
 end)
 
 DebugPanel:SetScript("OnEvent", function(self, event, arg)

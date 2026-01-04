@@ -1,27 +1,12 @@
-EATING_AURAS = {
-	["Food"] = true,
-	["Refreshment"] = true,
-	["Food & Drink"] = true,
-}
-
-function IsPlayerEating()
-	-- Fast paths
-	for auraName in pairs(EATING_AURAS) do
-		if AuraByName(auraName) then
-			return true
-		end
-	end
-
-	-- Full scan
-	return AnyHelpfulAuraMatches(function(aura)
-		local name = aura.name
-		if not name then
-			return false
-		end
-		return EATING_AURAS[name] == true
-	end)
+function floatToTwoString(x, precision)
+	precision = precision or 2
+	local fmtStr = string.format("%%0.%sf", precision)
+	return string.format(fmtStr, x)
 end
 
+--function clamp(value, min, max)
+--	return math.max(min, math.min(max, value))
+--end
 ------------------------------------------------------------
 -- Retail-safe aura helpers (NO UnitBuff)
 ------------------------------------------------------------
@@ -74,23 +59,23 @@ end
 --- @param prop string - name,level,health
 function GetPlayerProp(prop)
 	if prop == "name" then
-		return UnitName("player")
+		return UnitName("player") or "Player"
 	end
 
 	if prop == "level" then
-		return UnitLevel("player")
+		return UnitLevel("player") or 0
 	end
 
 	if prop == "health" then
-		return UnitHealth("player")
+		return UnitHealth("player") or 0
 	end
 
 	if prop == "speed" then
 		local isGliding, canGlide, forwardSpeed = C_PlayerInfo.GetGlidingInfo()
 		if canGlide and isGliding then
-			return forwardSpeed
+			return forwardSpeed or 0
 		else
-			return GetUnitSpeed("player")
+			return GetUnitSpeed("player") or 0
 		end
 	end
 end
