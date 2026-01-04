@@ -44,7 +44,7 @@ DebugPanel:SetScript("OnUpdate", function(self)
 	DebugPanel.health:SetText("Health: " .. floatToTwoString(PLAYER_STATE.health, 0))
 	DebugPanel.speed:SetText("Speed: " .. floatToTwoString(PLAYER_STATE.speed, 2))
 
-	DebugPanel.hunger:SetText("Hunger: " .. floatToTwoString(HUNGER.current, 3) .. " (" .. PLAYER_STATE.activity .. " @" .. floatToTwoString(HUNGER.rate, 3) .. "x)")
+	DebugPanel.hunger:SetText("Hunger: " .. floatToTwoString(HUNGER.current, 3) .. " (" .. PLAYER_STATE.activity .. " @" .. floatToTwoString(HUNGER.rate * 100, 1) .. "x)")
 	DebugPanel.resting:SetText("Resting: " .. tostring(PLAYER_STATE.resting))
 	DebugPanel.eating:SetText("Eating: " .. tostring(PLAYER_STATE.eating))
 
