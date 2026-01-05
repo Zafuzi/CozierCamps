@@ -14,14 +14,11 @@ lib/db.lua
 lib/gui.lua
 # END LIB
 
-# METERS
-Meters/HungerMeter.lua
-# END METERS
+# state
+controllers/hunger.lua
 
-# MODALS
-components/DebugPanel.lua
-# END MODALS
+# UI
+views/DebugPanel.lua
 
-# KEEP THIS LAST
-CozierCamps.lua
-# KEEP THIS LAST
+# Keep on bottom
+Core.lua
