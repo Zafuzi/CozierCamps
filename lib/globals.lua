@@ -1,3 +1,35 @@
+--[[ KEEP AT TOP JUST CUS I LIKE IT HERE ]]--
+--[[ Addon defaults ]]--
+
+-- Debug category to setting mapping (optimization for Debug function)
+DEBUG_SETTINGS = {
+	general = "debug_general",
+	hunger = "debug_hunger",
+	thirst = "debug_thirst",
+	database = "debug_database",
+	debug_panel = "show_debug_panel"
+}
+
+DEFAULT_SETTINGS = {
+	debug_general = false,
+	show_debug_panel = false,
+	debug_database = false,
+	debug_hunger = false,
+	debug_thirst = false,
+}
+
+-- Initialize character-specific saved variables
+DEFAULT_CHAR_SETTINGS = {
+	hunger_current = 0,
+	hunger_rate = 0,
+	hunger_timeToStarveInHours = 1,
+
+	thirst_current = 0,
+	thirst_rate = 0,
+	thirst_timeToDehydrationInHours = 1 / 3,
+}
+--[[ END DEFAULTS ]]--
+
 -- Shared constants for colors (reduces string allocations)
 COLORS = {
 	ADDON = "|cffFAFAFA",
@@ -12,12 +44,6 @@ COLORS = {
 	ERROR = "|cffDD0033"
 }
 
--- Debug category to setting mapping (optimization for Debug function)
-DEBUG_SETTINGS = {
-	general = "debug_general",
-	hunger = "debug_hunger",
-	database = "debug_database",
-}
 
 -- Debug category to color mapping
 DEBUG_COLORS = {
@@ -28,20 +54,6 @@ DEBUG_COLORS = {
 	hunger = COLORS.HUNGER,
 	thirst = COLORS.THIRST,
 	temperature = COLORS.TEMPERATURE
-}
-
--- Addon defaults
-DEFAULT_SETTINGS = {
-	debug_general = true,
-	debug_database = false,
-	debug_hunger = false,
-}
-
--- Initialize character-specific saved variables
-DEFAULT_CHAR_SETTINGS = {
-	hunger_current = 0,
-	hunger_rate = 0,
-	hunger_timeToStarveInHours = 1,
 }
 
 EATING_AURAS = {
@@ -55,13 +67,12 @@ METER_WIDTH = 300
 METER_HEIGHT = 32
 METER_FONT_SIZE = METER_HEIGHT / 2
 METER_SPACING = 4
-METER_PADDING = 3
-ICON_SIZE = METER_HEIGHT - 2
+METER_PADDING = 2
+ICON_SIZE = METER_FONT_SIZE + METER_SPACING
 
 TEXTURES = {
 	default = "Interface\\TargetingFrame\\UI-StatusBar",
 	raid = "Interface\\RaidFrame\\Raid-Bar-Hp-Fill", -- Blizzard Raid
-	smooth = "Interface\\AddOns\\CozierCamps\\assets\\UI-StatusBar", -- Smooth (custom if exists, fallback to Blizzard)
 	flat = "Interface\\Buttons\\WHITE8x8", -- Flat/Solid
 	gloss = "Interface\\PaperDollInfoFrame\\UI-Character-Skills-Bar", -- Gloss
 	minimal = "Interface\\TARGETINGFRAME\\UI-TargetingFrame-BarFill", -- Minimalist
@@ -100,3 +111,7 @@ Addon = {
 	},
 }
 
+ICONS = {
+	food = "Interface\\AddOns\\CozierCamps\\assets\\food.tga",
+	drink = "Interface\\AddOns\\CozierCamps\\assets\\drink.tga"
+}

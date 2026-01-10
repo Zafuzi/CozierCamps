@@ -1,7 +1,7 @@
 local config = {
 	name = "DebugPanel",
 	width = 400,
-	height = 100,
+	height = 300,
 	color = GUI_COLORS.headerColor,
 	backgroundColor = GUI_COLORS.cardBg,
 	borderColor = GUI_COLORS.cardBorder,
@@ -9,7 +9,6 @@ local config = {
 
 local padding = 16
 DebugPanel = OpenModal(config.name, config.width, config.height)
-DebugPanel:Hide()
 DebugPanel:RegisterEvent("PLAYER_ENTERING_WORLD")
 
 -- Style scrollbar
@@ -76,7 +75,13 @@ DebugPanel:SetScript("OnUpdate", function(self, elapsed)
 	bodyContent = ""
 
 	self:debug_hunger()
+	self:debug_thirst()
+	self:debug_database()
 
+	body:SetText(bodyHTML .. bodyContent .. bodyEND)
+end)
+
+DebugPanel.debug_database = function()
 	if GetSetting("debug_database") then
 		br()
 		h2("DB", COLORS.WARNING)
@@ -92,42 +97,32 @@ DebugPanel:SetScript("OnUpdate", function(self, elapsed)
 			p(tostring(k) .. ": " .. tostring(v))
 		end
 	end
-
-	body:SetText(bodyHTML .. bodyContent .. bodyEND)
-end)
+end
 
 DebugPanel.debug_hunger = function()
 	if not Addon.hungerCache then
-		h2("Missing hungerCache")
+		h2("Missing hungerCache", COLORS.ERROR)
 		return
 	end
 
-	local settingKey = DEBUG_SETTINGS["hunger"]
-	local shouldShow = GetSetting(settingKey)
-
-	p(tostring(shouldShow) .. " " .. tostring(settingKey))
-
-	if shouldShow then
-		local tts = ((100 - Addon.hungerCache.current) / 100) * (Addon.hungerCache.timeToStarveInHours or 1)
-
-		local tts_hours = 0
-		local tts_min = 0
-		local tts_sec = 0
-		local tts_ms = 0
-
-		tts_hours, tts_min = math.modf(tts)
-		tts_min, tts_sec = math.modf(tts_min * 60)
-		tts_sec, tts_ms = math.modf(tts_sec * 60)
-
-		br()
-		h2("Satiation: " .. floatToTwoString(tts * 100, 0) .. "% |> Starving in: " .. tts_hours .. "h " .. tts_min .. "m " .. tts_sec .. "s ")
-
-		for k, v in pairs(Addon.playerCache) do
-			p(tostring(k) .. ": " .. tostring(v), COLORS.HUNGER)
-		end
-
-		for k, v in pairs(Addon.hungerCache) do
-			p(tostring(k) .. ": " .. tostring(v), COLORS.HUNGER)
-		end
+	if GetSetting("debug_hunger") then
+		p("Hunger: " .. floatToTwoString(Addon.hungerCache.current, 3) .. "%", COLORS.HUNGER)
 	end
 end
+
+DebugPanel.debug_thirst = function()
+	if not Addon.thirstCache then
+		h2("Missing thirstCache", COLORS.ERROR)
+		return
+	end
+
+	if GetSetting("debug_thirst") then
+		p("Thirst: " .. floatToTwoString(Addon.thirstCache.current, 3) .. "%", COLORS.THIRST)
+	end
+end
+
+DebugPanel:SetScript("OnEvent", function(self, event, arg)
+	if event == "PLAYER_ENTERING_WORLD" and GetSetting("show_debug_panel") then
+		DebugPanel:Show()
+	end
+end)

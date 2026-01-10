@@ -17,10 +17,12 @@ lib/meter.lua
 
 # state
 controllers/hunger.lua
+controllers/thirst.lua
 
 # UI
 views/DebugPanel.lua
 views/HungerMeter.lua
+views/ThirstMeter.lua
 
 # Keep on bottom
 Core.lua

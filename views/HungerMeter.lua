@@ -1,5 +1,4 @@
-local hungerIcon = "Interface\\AddOns\\CozierCamps\\assets\\hungericon.blp"
-local hungerMeter = CreateMeter("Hunger", UIParent, hungerIcon, COLORS.HUNGER)
+hungerMeter = CreateMeter("Hunger", UIParent, ICONS.food, COLORS.HUNGER)
 hungerMeter:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
 hungerMeter:Show()
 hungerMeter:SetScript("OnUpdate", function(self, elapsed)
@@ -15,7 +14,7 @@ function UpdateHungerMeter(elapsed)
 		return
 	end
 
-	local hunger = Addon.hungerCache.current or 0
+	local hunger = 100 - (Addon.hungerCache.current or 0)
 
 	-- Smooth the display value to prevent flickering from exhaustion-scaled calculations
 	local targetDisplay = hunger

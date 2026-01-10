@@ -20,9 +20,11 @@ f:SetScript("OnUpdate", function(self, elapsed)
 		Addon.playerCache.speed = GetPlayerProp("speed")
 		Addon.playerCache.resting = IsResting()
 		Addon.playerCache.eating = IsPlayerEating()
+		Addon.playerCache.drinking = IsPlayerDrinking()
 		Addon.playerCache.activity = GetMovementState()
 
 		UpdatePlayerHunger(elapsed)
+		UpdatePlayerThirst(elapsed)
 
 		t = 0
 	end

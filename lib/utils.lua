@@ -22,6 +22,21 @@ function IsPlayerEating()
 	end)
 end
 
+-- Check if player is drinking
+function IsPlayerDrinking()
+	if AuraByName("Drink") or AuraByName("Food & Drink") or AuraByName("Refreshment") then
+		return true
+	end
+
+	return AnyHelpfulAuraMatches(function(aura)
+		local name = aura.name
+		if not name then
+			return false
+		end
+		return name == "Drink" or name == "Food & Drink" or name == "Refreshment"
+	end)
+end
+
 ------------------------------------------------------------
 -- Retail-safe aura helpers (NO UnitBuff)
 ------------------------------------------------------------
