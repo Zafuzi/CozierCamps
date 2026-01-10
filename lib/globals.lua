@@ -1,4 +1,6 @@
 --[[ KEEP AT TOP JUST CUS I LIKE IT HERE ]]--
+-- TODO: these need to be split into more files to make globals easier to manage
+-- i.e. _globals/colors.lua, _globals/icons.lua, etc...
 --[[ Addon defaults ]]--
 
 -- Debug category to setting mapping (optimization for Debug function)
@@ -94,7 +96,7 @@ FONTS = {
 
 Addon = {
 	version = "0.0.1",
-	name = "CozierCamps",
+	name = "Cultivation",
 
 	isLoaded = false,
 
@@ -112,6 +114,6 @@ Addon = {
 }
 
 ICONS = {
-	food = "Interface\\AddOns\\CozierCamps\\assets\\food.tga",
-	drink = "Interface\\AddOns\\CozierCamps\\assets\\drink.tga"
+	food = "Interface\\AddOns\\Cultivation\\assets\\food.tga",
+	drink = "Interface\\AddOns\\Cultivation\\assets\\drink.tga"
 }

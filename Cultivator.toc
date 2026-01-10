@@ -1,11 +1,11 @@
 ## Interface: 110207
-## Title: CozierCamps
+## Title: Cultivation
 ## Notes: Manage vitals, stay alive. Version 0.1 - Beta
 ## Author: Zafuzi
 ## Version: 0.0.1
 ## X-Curse-Project-ID: 1419520
 ## SavedVariables:
-## SavedVariablesPerCharacter: CozierCampsDB, CozierCampsCharDB
+## SavedVariablesPerCharacter: CultivationDB, CultivationCharDB
 
 # LIB
 lib/globals.lua

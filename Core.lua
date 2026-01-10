@@ -1,7 +1,4 @@
--- CozierCamps
--- Standalone addon for campfire-based gameplay restrictions
-
-local f = CreateFrame("Frame", "CozierCamps")
+local f = CreateFrame("Frame", "Cultivation")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(self, event, arg)

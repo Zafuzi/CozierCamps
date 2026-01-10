@@ -2,11 +2,11 @@ local f = CreateFrame("Frame", Addon.name .. " - DB")
 f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(self, event, arg)
 	if (event == "ADDON_LOADED" and arg == Addon.name) or event == "SETTINGS_CHANGED" then
-		if not CozierCampsDB then
-			CozierCampsDB = {}
+		if not CultivationDB then
+			CultivationDB = {}
 		end
 
-		Addon.DB = CozierCampsDB
+		Addon.DB = CultivationDB
 
 		for key, default in pairs(DEFAULT_SETTINGS) do
 			if Addon.DB[key] == nil then
@@ -14,11 +14,11 @@ f:SetScript("OnEvent", function(self, event, arg)
 			end
 		end
 
-		if not CozierCampsCharDB then
-			CozierCampsCharDB = {}
+		if not CultivationCharDB then
+			CultivationCharDB = {}
 		end
 
-		Addon.CharDB = CozierCampsCharDB
+		Addon.CharDB = CultivationCharDB
 
 		for key, default in pairs(DEFAULT_CHAR_SETTINGS) do
 			if Addon.CharDB[key] == nil then

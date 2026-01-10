@@ -3,7 +3,7 @@ function CreateMeter(name, parent, iconPath, color)
 	local bgColor = hex_to_rgb_normalized(color or COLORS.ADDON)
 	local textColor = hex_to_rgb_normalized(COLORS.ADDON)
 
-	local meter = CreateFrame("Frame", "CozierCamps - " .. name .. " - Meter", parent, "BackdropTemplate")
+	local meter = CreateFrame("Frame", "Cultivation - " .. name .. " - Meter", parent, "BackdropTemplate")
 	meter:SetSize(METER_WIDTH, METER_HEIGHT)
 	meter:SetPoint("TOP", parent, "TOP", 0, 0)
 

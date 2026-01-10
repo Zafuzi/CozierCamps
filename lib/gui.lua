@@ -26,7 +26,7 @@ GUI_COLORS = {
 --- @param parent any
 function OpenModal(name, width, height, parent)
 	name = name or "Modal"
-	name = "CozierCamps - " .. name
+	name = "Cultivation - " .. name
 	parent = parent or UIParent
 	local PFrame = CreateFrame("Frame", name, parent, "BackdropTemplate")
 
