@@ -11,7 +11,7 @@ f:SetScript("OnEvent", function(self, event, arg)
 end)
 
 local t = 0
-local delay = 1 / 60
+local delay = 1 / 120
 f:SetScript("OnUpdate", function(self, elapsed)
 	if Addon.isLoaded and t >= delay then
 		Addon.playerCache.name = GetPlayerProp("name")
@@ -37,11 +37,21 @@ SlashCmdList["COZIER"] = function(msg)
 	local command, value = msg:match("([^%s]+)%s*(.*)")
 	command = command or ""
 
-	if command == "debug" then
+	if command == "toggle" then
 		ToggleModal(DebugPanel)
 	end
 
 	if command == "clear" then
 		ResetSettings()
+	end
+
+	if command == "debug" then
+		local settingKey = DEBUG_SETTINGS[value]
+		if settingKey then
+			local isOn = GetSetting(settingKey)
+			SetSetting(settingKey, not isOn)
+		else
+			Debug("Debug Setting: " .. value .. " not found")
+		end
 	end
 end

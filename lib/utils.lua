@@ -99,20 +99,15 @@ function GetPlayerProp(prop)
 	end
 end
 
-function Dump(o, prefix)
-	prefix = prefix or ""
+function Dump(o)
 	if type(o) == 'table' then
-		local s = "\n  " .. prefix
+		local s = COLORS.ERROR
 
 		for k, v in pairs(o) do
-			if type(k) ~= 'number' then
-				--k = '"' .. k .. '"'
-			end
-			s = s .. "" .. k .. ": " .. Dump(v, "  ") .. " "
-
+			s = s .. "<br/> {" .. k .. " = " .. Dump(v) .. "},"
 		end
 
-		return s .. "\n"
+		return s .. "|r"
 	else
 		return tostring(o)
 	end
@@ -126,7 +121,7 @@ function Debug(msg, category)
 	local isCategoryOn = GetSetting(settingKey)
 
 	if isCategoryOn then
-		local color = DEBUG_COLORS[category] or COLORS.ADDON
+		local color = DEBUG_COLORS[category] or DEBUG_COLORS.ADDON
 		print(color .. Addon.name .. ":|r " .. msg)
 	else
 		print("skipping: " .. tostring(category))
@@ -163,4 +158,20 @@ function FireCallbacks(event, ...)
 			pcall(callback, Addon.isNearFire, Addon.inCombat)
 		end
 	end
+end
+
+-- Get the current bar texture path
+function GetBarTexture()
+	local textureIndex = GetSetting("meterBarTexture") or 1
+	return BAR_TEXTURES[textureIndex] or BAR_TEXTURES[1]
+end
+
+-- Get the current font path (nil means use default font object)
+function GetGeneralFont()
+	local fontIndex = GetSetting("generalFont") or 1
+	local fontData = BAR_FONTS[fontIndex]
+	if fontData and fontData.path then
+		return fontData.path
+	end
+	return nil -- Use default
 end

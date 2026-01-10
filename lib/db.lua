@@ -14,8 +14,6 @@ f:SetScript("OnEvent", function(self, event, arg)
 			end
 		end
 
-		Debug("DB <> " .. Dump(Addon.DB))
-
 		if not CozierCampsCharDB then
 			CozierCampsCharDB = {}
 		end
@@ -28,8 +26,6 @@ f:SetScript("OnEvent", function(self, event, arg)
 				Addon.CharDB[key] = default
 			end
 		end
-
-		Debug("CharDB <> " .. Dump(Addon.CharDB))
 	end
 end)
 

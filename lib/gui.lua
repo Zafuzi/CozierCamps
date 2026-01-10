@@ -1,5 +1,5 @@
 -- Color scheme - Black/Slate with Orange accents
-COLORS = {
+GUI_COLORS = {
 	bg = { 0.06, 0.06, 0.08, 0.97 },
 	headerBg = { 0.08, 0.08, 0.10, 1 },
 	primary = { 1.0, 0.6, 0.2, 1 }, -- Orange
@@ -28,38 +28,52 @@ function OpenModal(name, width, height, parent)
 	name = name or "Modal"
 	name = "CozierCamps - " .. name
 	parent = parent or UIParent
-	frame = CreateFrame("ScrollFrame", name, parent, "BasicFrameTemplateWithInset")
-	frame:SetSize(width or 100, height or 100)
-	frame:SetPoint("CENTER", parent, "CENTER", 0, 0)
-	frame:SetMovable(true)
-	frame:EnableMouse(true)
-	frame:RegisterForDrag("LeftButton")
-	frame:SetScript("OnDragStart", frame.StartMoving)
-	frame:SetScript("OnDragStop", frame.StopMovingOrSizing)
+	local PFrame = CreateFrame("Frame", name, parent, "BackdropTemplate")
 
-	frame:SetScript("OnShow", function(self)
+	PFrame:SetSize(width or 100, height or 100)
+	PFrame:SetPoint("CENTER", parent, "CENTER", 0, 0)
+	PFrame:SetBackdrop({
+		bgFile = "Interface\\Buttons\\WHITE8X8",
+		edgeFile = "Interface\\Buttons\\WHITE8X8",
+		edgeSize = 2
+	})
+	PFrame:SetBackdropColor(0.06, 0.06, 0.08, 0.98)
+	PFrame:SetBackdropBorderColor(0.12, 0.12, 0.14, 1)
+	PFrame:SetMovable(true)
+	PFrame:EnableMouse(true)
+	PFrame:RegisterForDrag("LeftButton")
+	PFrame:SetScript("OnDragStart", PFrame.StartMoving)
+	PFrame:SetScript("OnDragStop", PFrame.StopMovingOrSizing)
+
+	PFrame:SetScript("OnShow", function(self)
 		PlaySound(808)
 	end)
 
-	frame:SetScript("OnHide", function(self)
+	PFrame:SetScript("OnHide", function(self)
 		PlaySound(808)
 	end)
 
-	frame:SetFrameStrata("DIALOG")
-	frame:SetClampedToScreen(true)
+	PFrame:SetFrameStrata("DIALOG")
+	PFrame:SetClampedToScreen(true)
 
 	-- Title
-	frame.TitleBg:SetHeight(30)
-	frame.title = frame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
-	frame.title:SetPoint("TOPLEFT", frame.TitleBg, "TOPLEFT", 5, -5)
-	frame.title:SetText(name)
+	PFrame.title = PFrame:CreateFontString(nil, "OVERLAY", "GameFontHighlight")
+	PFrame.title:SetPoint("TOPLEFT", PFrame, "TOPLEFT", 5, -5)
+	PFrame.title:SetText(name)
+
+	-- ScrollFrame
+	local scrollFrame = CreateFrame("ScrollFrame", name, PFrame, "UIPanelScrollFrameTemplate")
+	scrollFrame:SetSize(width, height)
+	scrollFrame:SetPoint("TOPLEFT", PFrame.title, "BOTTOMLEFT", 0, -5)
+	scrollFrame:SetPoint("BOTTOMRIGHT", PFrame, "BOTTOMRIGHT", -5, 5)
+	PFrame.scrollFrame = scrollFrame
 
 	-- This makes escape work to close this modal
 	--table.insert(UISpecialFrames, name)
 
-	frame:Hide()
+	PFrame:Hide()
 
-	return frame
+	return PFrame
 end
 
 --- @param frame any
