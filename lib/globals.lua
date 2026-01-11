@@ -3,7 +3,7 @@
 -- i.e. _globals/colors.lua, _globals/icons.lua, etc...
 --[[ Addon defaults ]] --
 Addon = {
-	version = "0.0.2",
+	version = "0.0.3",
 	name = "Cultivation",
 
 	isLoaded = false,

@@ -3,7 +3,7 @@
 ## Category: Roleplay
 ## Notes: Condense your core, survive the wilds, master arts, reach the peak. 0.0.1 - Alpha
 ## Author: Zafuzi
-## Version: 0.0.2
+## Version: 0.0.3
 ## X-Curse-Project-ID: 1425891
 ## SavedVariables:
 ## SavedVariablesPerCharacter: CultivationDB, CultivationCharDB
