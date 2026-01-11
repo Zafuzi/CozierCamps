@@ -19,11 +19,13 @@ lib/meter.lua
 # state
 controllers/hunger.lua
 controllers/thirst.lua
+controllers/cultivation.lua
 
 # UI
 views/DebugPanel.lua
 views/HungerMeter.lua
 views/ThirstMeter.lua
+views/CultivationMeter.lua
 
 # Keep on bottom
 Core.lua

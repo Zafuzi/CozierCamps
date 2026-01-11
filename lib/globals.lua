@@ -24,18 +24,22 @@ Addon = {
 -- Debug category to setting mapping (optimization for Debug function)
 DEBUG_SETTINGS = {
 	general = "debug_general",
+	player = "debug_player",
 	hunger = "debug_hunger",
 	thirst = "debug_thirst",
+	cultivation = "debug_cultivation",
 	database = "debug_database",
 	panel = "show_debug_panel"
 }
 
 DEFAULT_SETTINGS = {
-	debug_general = false,
-	show_debug_panel = false,
-	debug_database = false,
-	debug_hunger = false,
-	debug_thirst = false,
+	debug_general = true,
+	show_debug_panel = true,
+	debug_player = true,
+	debug_database = true,
+	debug_hunger = true,
+	debug_thirst = true,
+	debug_cultivation = true,
 }
 
 -- Initialize character-specific saved variables
@@ -47,17 +51,25 @@ DEFAULT_CHAR_SETTINGS = {
 	thirst_current = 0,
 	thirst_rate = 0,
 	thirst_timeToDehydrationInHours = 1 / 3,
+
+	cultivation_current = 0,
+	cultivation_rate = 0,
+	cultivation_milestone = 1,
+	cultivation_color = "#FF0000",
+	cultivation_active = true,
 }
 --[[ END DEFAULTS ]] --
 
 -- Shared constants for colors (reduces string allocations)
 COLORS = {
 	ADDON = "|cffFAFAFA",
+	WHITE = "|cffFAFAFA",
 	PROXIMITY = "|cff88FF88",
 	EXHAUSTION = "|cffFFAA88",
 	ANGUISH = "|cffFF6688",
 	HUNGER = "|cffFFBB44",
 	THIRST = "|cff0074c7",
+	CULTIVATION = "|cffdd0033",
 	TEMPERATURE = "|cffFFCC55",
 	WARNING = "|cffFF6600",
 	SUCCESS = "|cff00FF00",
@@ -67,7 +79,7 @@ COLORS = {
 
 -- Debug category to color mapping
 DEBUG_COLORS = {
-	general = COLORS.ADDON,
+	general = COLORS.WHITE,
 	proximity = COLORS.PROXIMITY,
 	exhaustion = COLORS.EXHAUSTION,
 	Anguish = COLORS.ANGUISH,
@@ -114,5 +126,7 @@ FONTS = {
 
 ICONS = {
 	food = "Interface\\AddOns\\Cultivation\\assets\\food.tga",
-	drink = "Interface\\AddOns\\Cultivation\\assets\\drink.tga"
+	drink = "Interface\\AddOns\\Cultivation\\assets\\drink.tga",
+	logo = "Interface\\AddOns\\Cultivation\\assets\\logo.png",
+	cultivation = "Interface\\AddOns\\Cultivation\\assets\\swirl.png",
 }

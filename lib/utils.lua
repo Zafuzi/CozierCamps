@@ -1,3 +1,5 @@
+ONE_THIRD = 1 / 3
+
 function floatToTwoString(x, precision)
 	precision = precision or 2
 	local fmtStr = string.format("%%0.%sf", precision)
@@ -34,6 +36,21 @@ function IsPlayerDrinking()
 			return false
 		end
 		return name == "Drink" or name == "Food & Drink" or name == "Refreshment"
+	end)
+end
+
+-- Check if player is near a campfire
+function IsPlayerCamping()
+	if AuraByName("Cozy Fire") then
+		return true
+	end
+
+	return AnyHelpfulAuraMatches(function(aura)
+		local name = aura.name
+		if not name then
+			return false
+		end
+		return name == "Cozy Fire"
 	end)
 end
 
@@ -102,6 +119,14 @@ function GetPlayerProp(prop)
 
 	if prop == "health" then
 		return UnitHealth("player") or 0
+	end
+
+	if prop == "afk" then
+		return UnitIsAFK("player") or false
+	end
+
+	if prop == "using_vehicle" then
+		return UnitUsingVehicle("player") or false
 	end
 
 	if prop == "speed" then
@@ -174,7 +199,7 @@ function FireCallbacks(event, ...)
 end
 
 function GetTexture(texture)
-	local textureIndex = texture or GetSetting("meterBarTexture") or"default"
+	local textureIndex = texture or GetSetting("meterBarTexture") or "default"
 	return TEXTURES[textureIndex]
 end
 
@@ -184,6 +209,10 @@ function GetFont(fontName)
 end
 
 function hex_to_rgb_normalized(hex)
+	if not hex or not (type(hex) == "string") then
+		return { 1, 1, 1 }
+	end
+
 	-- Remove the # prefix if present
 	hex = hex:gsub("#", "")
 
@@ -194,5 +223,18 @@ function hex_to_rgb_normalized(hex)
 	local r, g, b = tonumber("0x" .. hex:sub(1, 2)), tonumber("0x" .. hex:sub(3, 4)), tonumber("0x" .. hex:sub(5, 6))
 
 	-- Normalize to range [0, 1]
-	return {r / 255, g / 255, b / 255}
+	return { r / 255, g / 255, b / 255 }
+end
+
+function indexOf(array, value)
+	for i, v in ipairs(array) do
+		if v == value then
+			return i
+		end
+	end
+	return nil
+end
+
+function RateAfterCultivation(rate)
+	return CultivationMultipliers[GetCurrentMilestone()] / (60 * rate)
 end

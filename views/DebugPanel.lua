@@ -40,22 +40,22 @@ local function addToBody(string)
 end
 
 local function h1(string, color)
-	color = tostring(color or COLORS.ADDON)
+	color = tostring(color or COLORS.WHITE)
 	addToBody("<h1>" .. color .. string .. "|r</h1>")
 end
 
 local function h2(string, color)
-	color = tostring(color or COLORS.ADDON)
+	color = tostring(color or COLORS.WHITE)
 	addToBody("<h2>" .. color .. string .. "|r</h2>")
 end
 
 local function h3(string, color)
-	color = tostring(color or COLORS.ADDON)
+	color = tostring(color or COLORS.WHITE)
 	addToBody("<h3>" .. color .. string .. "|r</h3>")
 end
 
 local function p(string, color)
-	color = tostring(color or COLORS.ADDON)
+	color = tostring(color or COLORS.WHITE)
 	addToBody("<p>" .. color .. string .. "|r</p>")
 end
 
@@ -76,10 +76,23 @@ DebugPanel:SetScript("OnUpdate", function(self, elapsed)
 
 	self:debug_hunger()
 	self:debug_thirst()
+	self:debug_cultivation()
+	self:debug_player()
 	self:debug_database()
 
 	body:SetText(bodyHTML .. bodyContent .. bodyEND)
 end)
+
+DebugPanel.debug_player = function()
+	if GetSetting("debug_player") then
+		br()
+		h2("PlayerCache", COLORS.WARNING)
+
+		for k, v in pairs(Addon.playerCache) do
+			p(tostring(k) .. ": " .. tostring(v))
+		end
+	end
+end
 
 DebugPanel.debug_database = function()
 	if GetSetting("debug_database") then
@@ -118,6 +131,24 @@ DebugPanel.debug_thirst = function()
 
 	if GetSetting("debug_thirst") then
 		p("Thirst: " .. floatToTwoString(Addon.thirstCache.current, 3) .. "%", COLORS.THIRST)
+	end
+end
+
+DebugPanel.debug_cultivation = function()
+	if not Addon.cultivationCache then
+		h2("Missing cultivationCache", COLORS.ERROR)
+		return
+	end
+
+	if GetSetting("debug_cultivation") then
+		local next = GetNextMilestone()
+		local milestone = GetMilestoneValue(next)
+		local current = Addon.cultivationCache.current
+		p("Cultivation: " .. floatToTwoString(current, 3), COLORS.CULTIVATION)
+		p(
+			"Milestone: " ..
+			Addon.cultivationCache.milestone .. " next: " .. next .. " reached at: " .. floatToTwoString(milestone, 3),
+			COLORS.CULTIVATION)
 	end
 end
 

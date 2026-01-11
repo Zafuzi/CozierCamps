@@ -11,6 +11,7 @@ f:SetScript("OnEvent", function(self, event, arg)
 
 		for key, default in pairs(DEFAULT_SETTINGS) do
 			if Addon.DB[key] == nil then
+				print("Setting " .. tostring(key) .. " to " .. tostring(default))
 				Addon.DB[key] = default
 			end
 		end
@@ -24,7 +25,7 @@ f:SetScript("OnEvent", function(self, event, arg)
 
 		for key, default in pairs(DEFAULT_CHAR_SETTINGS) do
 			if Addon.CharDB[key] == nil then
-				Debug("resetting " .. tostring(key) .. " to default " .. tostring(default))
+				print("Setting " .. tostring(key) .. " to " .. tostring(default))
 				Addon.CharDB[key] = default
 			end
 		end
@@ -34,6 +35,7 @@ end)
 function SetSetting(key, value)
 	if Addon.DB then
 		Addon.DB[key] = value
+		-- print("Updated: " .. tostring(key) .. " = " .. tostring(value))
 	end
 end
 
@@ -73,5 +75,6 @@ end
 function SetCharSetting(key, value)
 	if Addon.CharDB then
 		Addon.CharDB[key] = value
+		-- print("Updated: " .. tostring(key) .. " = " .. tostring(value))
 	end
 end

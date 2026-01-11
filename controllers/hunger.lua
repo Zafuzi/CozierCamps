@@ -1,11 +1,5 @@
 function UpdatePlayerHunger(elapsed)
 	-- load into caches
-	Addon.hungerCache = {
-		current = GetCharSetting("hunger_current"),
-		rate = GetCharSetting("hunger_rate"),
-		timeToStarveInHours = GetCharSetting("hunger_timeToStarveInHours"),
-	}
-
 	local rate = GetHungerRate()
 	SetCharSetting("hunger_rate", rate)
 
@@ -54,7 +48,7 @@ function GetHungerRate()
 	end
 
 	if not rate then
-		return 0
+		rate = 1
 	end
 
 	if Addon.playerCache.resting then
@@ -63,5 +57,5 @@ function GetHungerRate()
 		rate = rate * 2
 	end
 
-	return 1 / (60 * rate)
+	return RateAfterCultivation(rate)
 end

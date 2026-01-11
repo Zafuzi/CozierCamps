@@ -1,12 +1,5 @@
 -- TODO: convert to a module that requires ZERO utils
 function UpdatePlayerThirst(elapsed)
-	-- load into caches
-	Addon.thirstCache = {
-		current = GetCharSetting("thirst_current"),
-		rate = GetCharSetting("thirst_rate"),
-		timeToDehydrationInHours = GetCharSetting("thirst_timeToDehydrationInHours"),
-	}
-
 	local rate = GetThirstRate()
 	SetCharSetting("thirst_rate", rate)
 
@@ -26,7 +19,7 @@ function GetThirstRate()
 		return -(100 / 20)
 	end
 
-	local tts = Addon.thirstCache.thirst_timeToDehydrationInHours or 1 / 3
+	local tts = Addon.thirstCache.thirst_timeToDehydrationInHours or ONE_THIRD
 	local rate = tts
 
 	if Addon.playerCache.activity == "idle" then
@@ -64,5 +57,5 @@ function GetThirstRate()
 		rate = rate * 2
 	end
 
-	return 1 / (60 * rate)
+	return RateAfterCultivation(rate)
 end

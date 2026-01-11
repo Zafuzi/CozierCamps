@@ -1,10 +1,17 @@
 local f = CreateFrame("Frame", "Cultivation")
 f:RegisterEvent("PLAYER_ENTERING_WORLD")
 f:RegisterEvent("ADDON_LOADED")
+f:RegisterEvent("PLAYER_STOPPED_MOVING")
+f:RegisterEvent("PLAYER_UPDATE_RESTING")
+
 f:SetScript("OnEvent", function(self, event, arg)
 	if event == "ADDON_LOADED" and arg == Addon.name then
 		Addon.isLoaded = true
 		print(Addon.name .. " is loaded.")
+	end
+
+	if event == "PLAYER_UPDATE_RESTING" then
+		print("Player update resting: " .. arg)
 	end
 end)
 
@@ -20,9 +27,33 @@ f:SetScript("OnUpdate", function(self, elapsed)
 		Addon.playerCache.eating = IsPlayerEating()
 		Addon.playerCache.drinking = IsPlayerDrinking()
 		Addon.playerCache.activity = GetMovementState()
+		Addon.playerCache.cultivating = IsPlayerCultivating()
+		Addon.playerCache.camping = IsPlayerCamping()
+		Addon.playerCache.onVehicle = GetPlayerProp("using_vehicle")
+
+		Addon.hungerCache = {
+			current = GetCharSetting("hunger_current"),
+			rate = GetCharSetting("hunger_rate"),
+			timeToStarveInHours = GetCharSetting("hunger_timeToStarveInHours"),
+		}
+
+		Addon.thirstCache = {
+			current = GetCharSetting("thirst_current"),
+			rate = GetCharSetting("thirst_rate"),
+			timeToDehydrationInHours = GetCharSetting("thirst_timeToDehydrationInHours"),
+		}
+
+		Addon.cultivationCache = {
+			current = GetCharSetting("cultivation_current"),
+			rate = GetCharSetting("cultivation_rate"),
+			milestone = GetCharSetting("cultivation_milestone"),
+			color = GetCharSetting("cultivation_color"),
+			active = GetCharSetting("cultivation_active"),
+		}
 
 		UpdatePlayerHunger(elapsed)
 		UpdatePlayerThirst(elapsed)
+		UpdatePlayerCultivation(elapsed)
 
 		t = 0
 	end
@@ -30,9 +61,9 @@ f:SetScript("OnUpdate", function(self, elapsed)
 	t = t + elapsed
 end)
 
-SLASH_COZIER1 = "/cozier"
-SLASH_COZIER2 = "/cc"
-SlashCmdList["COZIER"] = function(msg)
+SLASH_CULTIVATION1 = "/cultivation"
+SLASH_CULTIVATION2 = "/c"
+SlashCmdList["CULTIVATION"] = function(msg)
 	msg = string.lower(msg or "")
 	local command, value = msg:match("([^%s]+)%s*(.*)")
 	command = command or ""
@@ -43,6 +74,20 @@ SlashCmdList["COZIER"] = function(msg)
 
 	if command == "clear" then
 		ResetSettings()
+	end
+
+	if command == "cul_cur" then
+		SetCharSetting("cultivation_current", value)
+	end
+
+	if command == "cultivate" then
+		local isOn = GetSetting("cultivation_active") or false
+		SetCharSetting("cultivation_active", not isOn)
+		print("Set cultivation_active " .. tostring(not isOn))
+	end
+
+	if command == "milestone" then
+		SetCharSetting("cultivation_milestone", value)
 	end
 
 	if command == "debug" then

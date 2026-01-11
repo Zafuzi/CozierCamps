@@ -1,7 +1,7 @@
-hungerMeter = CreateMeter("Hunger", UIParent, ICONS.food, COLORS.HUNGER)
-hungerMeter:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
-hungerMeter:Show()
-hungerMeter:SetScript("OnUpdate", function(self, elapsed)
+HungerMeter = CreateMeter("Hunger", UIParent, ICONS.food, COLORS.HUNGER)
+HungerMeter:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 0, 0)
+HungerMeter:Show()
+HungerMeter:SetScript("OnUpdate", function(self, elapsed)
 	UpdateHungerMeter(elapsed)
 end)
 
@@ -10,7 +10,7 @@ local HUNGER_DISPLAY_LERP_SPEED = 3.0 -- How fast display catches up to actual v
 
 -- Update hunger meter
 function UpdateHungerMeter(elapsed)
-	if not hungerMeter or not Addon.hungerCache then
+	if not HungerMeter or not Addon.hungerCache then
 		return
 	end
 
@@ -27,20 +27,8 @@ function UpdateHungerMeter(elapsed)
 	end
 	local displayValue = smoothedHungerDisplay
 
-	--local tts = ((100 - Addon.hungerCache.current) / 100) * (Addon.hungerCache.timeToStarveInHours or 1)
-
-	--local tts_hours = 0
-	--local tts_min = 0
-	--local tts_sec = 0
-	--local tts_ms = 0
-
-	--tts_hours, tts_min = math.modf(tts)
-	--tts_min, tts_sec = math.modf(tts_min * 60)
-	--tts_sec, tts_ms = math.modf(tts_sec * 60)
-
-
 	-- Update bar value (inverted: full bar = 0% hunger, empty bar = 100% hunger)
-	hungerMeter.bar:SetValue(displayValue)
+	HungerMeter.bar:SetValue(displayValue)
 
 	-- Format percentage text
 	-- Both bar and vial modes show inverted value (100 = full/good, 0 = empty/bad)
@@ -49,5 +37,5 @@ function UpdateHungerMeter(elapsed)
 	percentText = string.format("%.0f%%", displayValue)
 
 	-- Apply text based on hideVialText setting
-	hungerMeter.percent:SetText(percentText)
+	HungerMeter.percent:SetText("x" .. floatToTwoString(100 * Addon.hungerCache.rate) .. " " .. percentText)
 end
