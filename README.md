@@ -2,7 +2,7 @@
 
 Condense your core, survive the wilds, master arts, reach the peak.
 
-![v0.0.3-alpha](/screenshots/v0.0.3-alpha.png)
+![v0.0.3-alpha](screenshots/v0.0.3-alpha.PNG)
 
 ## Hunger
 
