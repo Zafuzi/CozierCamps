@@ -1,26 +1,3 @@
--- should be 1:1 length with CultivationMilestones
-CultivationMeter = CreateMeter("Cultivation", ThirstMeter, ICONS.cultivation, Cultivation_colors[1])
-CultivationMeter:RegisterEvent("VARIABLES_LOADED")
-CultivationMeter:SetPoint("TOPLEFT", ThirstMeter, "BOTTOMLEFT", 0, -METER_SPACING)
-CultivationMeter:Show()
-
-local isCacheLoaded = false
-local isFirstRun = true
-CultivationMeter:SetScript("OnUpdate", function(self, elapsed)
-	if not Addon.cultivationCache then
-		return
-	end
-
-	isCacheLoaded = true
-
-	if isFirstRun then
-		isFirstRun = false
-		local color = Addon.cultivationCache.color
-		CultivationMeter:UpdateBgColor(color)
-	end
-	UpdateCultivationMeter(elapsed)
-end)
-
 function MilestoneReached(next)
 	local next_color = Cultivation_colors[next]
 	SetCharSetting("cultivation_color", next_color)
@@ -40,17 +17,17 @@ local CULTIVATION_DISPLAY_LERP_SPEED = 3.0 -- How fast display catches up to act
 
 -- Update cultivation meter
 -- TODO: move to draw / update calls and remove dependence on platform where you can
+local nameText = ""
+local milestone = 1
+local milestone_value = GetMilestoneValue(milestone)
+local cultivation = 0
+local multiplier = 1
+
 function UpdateCultivationMeter(elapsed)
-	if not CultivationMeter or not Addon.cultivationCache then
-		return
-	end
+	milestone = Addon.cultivationCache.milestone
+	milestone_value = GetMilestoneValue(milestone)
 
-	local milestone = Addon.cultivationCache.milestone
-	local milestone_value = GetMilestoneValue(milestone)
-	local next = GetMilestoneValue(GetNextMilestone())
-	local prev = GetMilestoneValue(GetPrevMilestone())
-
-	local cultivation = Addon.cultivationCache.current or 0
+	cultivation = Addon.cultivationCache.current or 0
 
 	-- Smooth the display value to prevent flickering from exhaustion-scaled calculations
 	local targetDisplay = 100 * (cultivation / milestone_value)
@@ -71,10 +48,27 @@ function UpdateCultivationMeter(elapsed)
 	CultivationMeter.bar:SetValue(displayValue)
 
 	-- Format percentage text
-	local percentText
-	percentText = string.format("%.0f%%", displayValue)
+	nameText = ""
+	nameText = nameText .. Dump(cultivation, 0) .. " "
+	multiplier = GetCultivationMultiplier()
+	if multiplier < 1 then
+		nameText = nameText .. "(" .. Dump((100 - (100 * multiplier)), 0) .. "% reduction)"
+	end
 
 	-- Apply text based on hideVialText setting
-	CultivationMeter.percent:SetText("x" .. Addon.cultivationCache.rate .. " " .. percentText)
-	CultivationMeter.name:SetText("Cultivation: (-" .. 100 - (100 * GetCultivationMultiplier()) .. "%)")
+	CultivationMeter.name:SetText("Cultivation")
+end
+
+function SetupCultivationTooltip(self)
+	self.tooltip = function(_self)
+		local color = hex_to_rgb_normalized(Cultivation_colors[milestone])
+		local nextMilestone = GetNextMilestone()
+		local nextColor = hex_to_rgb_normalized(Cultivation_colors[nextMilestone])
+		GameTooltip:AddLine("Cultivation", unpack(hex_to_rgb_normalized(COLORS.CULTIVATION)))
+		GameTooltip:AddLine("Core: " .. Dump(Cultivation_tiers[milestone]), unpack(color))
+		GameTooltip:AddLine("Next: " .. Dump(Cultivation_tiers[nextMilestone]), unpack(nextColor))
+		GameTooltip:AddLine("Current: " .. Dump(cultivation), 1, 1, 1)
+		GameTooltip:AddLine("Reduction: " .. Dump(GetCultivationMultiplier()), 1, 1, 1)
+		GameTooltip:AddLine("Rate: " .. Dump(GetCultivationRate()), 1, 1, 1)
+	end
 end

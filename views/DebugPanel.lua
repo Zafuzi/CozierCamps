@@ -8,17 +8,13 @@ local config = {
 }
 
 local padding = 16
-DebugPanel = OpenModal(config.name, config.width, config.height)
+DebugPanel = OpenModal(config.name, config.width, config.height, UIParent, { isScrollable = true })
+DebugPanel:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 10, -10)
 DebugPanel:RegisterEvent("PLAYER_ENTERING_WORLD")
+DebugPanel:SetIgnoreParentAlpha(true)
 
 -- Style scrollbar
 local scrollFrame = DebugPanel.scrollFrame
-local scrollBar = scrollFrame.ScrollBar
-if scrollBar then
-	scrollBar:ClearAllPoints()
-	scrollBar:SetPoint("TOPLEFT", scrollFrame, "TOPRIGHT", -21, -5)
-	scrollBar:SetPoint("BOTTOMLEFT", scrollFrame, "BOTTOMRIGHT", -21, 21)
-end
 
 local body = CreateFrame('SimpleHTML', nil, scrollFrame);
 body:SetSize(scrollFrame:GetSize())
@@ -31,7 +27,7 @@ body:SetPoint("BOTTOMRIGHT", scrollFrame, "BOTTOMRIGHT", 0, 0)
 DebugPanel.scrollFrame:SetScrollChild(body)
 
 local bodyHTML = "<html><body>"
-local bodyEND = "</body></html>"
+local bodyEND = "<br/><br/></body></html>"
 
 local bodyContent = ""
 
@@ -67,6 +63,15 @@ local function hr()
 	addToBody("<hr/>")
 end
 
+local function renderTable(title, table, color)
+	color = color or COLORS.ADDON
+	br()
+	h2(title, color)
+	for k, v in pairs(table) do
+		p(Dump(k) .. " = " .. Dump(v), COLORS.TABLE)
+	end
+end
+
 DebugPanel:SetScript("OnShow", function(self)
 	PlaySound(808)
 end)
@@ -85,30 +90,13 @@ end)
 
 DebugPanel.debug_player = function()
 	if GetSetting("debug_player") then
-		br()
-		h2("PlayerCache", COLORS.WARNING)
-
-		for k, v in pairs(Addon.playerCache) do
-			p(tostring(k) .. ": " .. tostring(v))
-		end
+		renderTable("PlayerCache", Addon.playerCache, COLORS.WHITE)
 	end
 end
 
 DebugPanel.debug_database = function()
 	if GetSetting("debug_database") then
-		br()
-		h2("DB", COLORS.WARNING)
-
-		for k, v in pairs(Addon.DB) do
-			p(tostring(k) .. ": " .. tostring(v))
-		end
-
-		br()
-		h2("CharDB", COLORS.WARNING)
-
-		for k, v in pairs(Addon.CharDB) do
-			p(tostring(k) .. ": " .. tostring(v))
-		end
+		renderTable("Settings", Addon.DB, COLORS.EXHAUSTION)
 	end
 end
 
@@ -119,7 +107,7 @@ DebugPanel.debug_hunger = function()
 	end
 
 	if GetSetting("debug_hunger") then
-		p("Hunger: " .. floatToTwoString(Addon.hungerCache.current, 3) .. "%", COLORS.HUNGER)
+		renderTable("Hunger", Addon.hungerCache, COLORS.HUNGER)
 	end
 end
 
@@ -130,7 +118,7 @@ DebugPanel.debug_thirst = function()
 	end
 
 	if GetSetting("debug_thirst") then
-		p("Thirst: " .. floatToTwoString(Addon.thirstCache.current, 3) .. "%", COLORS.THIRST)
+		renderTable("Thirst", Addon.thirstCache, COLORS.THIRST)
 	end
 end
 
@@ -141,19 +129,12 @@ DebugPanel.debug_cultivation = function()
 	end
 
 	if GetSetting("debug_cultivation") then
-		local next = GetNextMilestone()
-		local milestone = GetMilestoneValue(next)
-		local current = Addon.cultivationCache.current
-		p("Cultivation: " .. floatToTwoString(current, 3), COLORS.CULTIVATION)
-		p(
-			"Milestone: " ..
-			Addon.cultivationCache.milestone .. " next: " .. next .. " reached at: " .. floatToTwoString(milestone, 3),
-			COLORS.CULTIVATION)
+		renderTable("Cultivation", Addon.cultivationCache, COLORS.CULTIVATION)
 	end
 end
 
 DebugPanel:SetScript("OnEvent", function(self, event, arg)
-	if event == "PLAYER_ENTERING_WORLD" and GetSetting("show_debug_panel") then
+	if event == "PLAYER_ENTERING_WORLD" and GetSetting("debug_panel") then
 		DebugPanel:Show()
 	end
 end)

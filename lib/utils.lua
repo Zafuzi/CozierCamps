@@ -1,11 +1,29 @@
 ONE_THIRD = 1 / 3
 
-function floatToTwoString(x, precision)
-	precision = precision or 2
-	local fmtStr = string.format("%%0.%sf", precision)
-	return string.format(fmtStr, x)
+function Dump(value, precision)
+	if type(value) == "number" then
+		precision = precision or 2
+		local fmtStr = string.format("%%0.%sf", precision)
+		value = WithCommas(string.format(fmtStr, value))
+	end
+
+	if type(value) == "boolean" then
+		local isTrue = (not not value) and "x" or " "
+		value = "[" .. (isTrue) .. "]"
+	end
+
+	if type(value) == "table" then
+		local nv = ""
+		for key, v in pairs(value) do
+			nv = nv .. Dump(key) .. "=" .. Dump(v)
+		end
+		value = nv
+	end
+
+	return tostring(value)
 end
 
+-- TODO: Move all these IsPlayer functions to it's own utils file
 function IsPlayerEating()
 	-- Fast paths
 	for auraName in pairs(EATING_AURAS) do
@@ -52,6 +70,10 @@ function IsPlayerCamping()
 		end
 		return name == "Cozy Fire"
 	end)
+end
+
+function IsPlayerCultivating()
+	return Addon.cultivationCache and Addon.cultivationCache.active
 end
 
 ------------------------------------------------------------
@@ -139,30 +161,15 @@ function GetPlayerProp(prop)
 	end
 end
 
-function Dump(o)
-	if type(o) == 'table' then
-		local s = COLORS.ERROR
-
-		for k, v in pairs(o) do
-			s = s .. "<br/> {" .. k .. " = " .. Dump(v) .. "},"
-		end
-
-		return s .. "|r"
-	else
-		return tostring(o)
-	end
-end
-
 -- Debug (optimized with lookup tables)
 function Debug(msg, category)
 	category = category or "general"
 
-	local settingKey = DEBUG_SETTINGS[category]
-	local isCategoryOn = GetSetting(settingKey)
+	local isCategoryOn = GetSetting("debug_" .. category)
 
 	if isCategoryOn then
 		local color = DEBUG_COLORS[category] or DEBUG_COLORS.ADDON
-		print(color .. Addon.name .. ":|r " .. msg)
+		print(color .. Addon.name .. ":|r " .. Dump(msg))
 	end
 end
 
@@ -237,4 +244,19 @@ end
 
 function RateAfterCultivation(rate)
 	return CultivationMultipliers[GetCurrentMilestone()] / (60 * rate)
+end
+
+function Cultivate(turnOn)
+	SetCharSetting("cultivation_active", turnOn)
+
+	if turnOn then
+		DoEmote("SIT")
+	else
+		DoEmote("STAND")
+	end
+end
+
+function WithCommas(n)
+	local left, num, right = string.match(n, '^([^%d]*%d)(%d*)(.-)$')
+	return left .. (num:reverse():gsub('(%d%d%d)', '%1,'):reverse()) .. right
 end

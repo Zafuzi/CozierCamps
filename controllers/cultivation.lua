@@ -1,4 +1,4 @@
-CultivationMilestones = { 1000, 10000, 1000000, 100000000, 10000000000, 1000000000000, 10000000000000000 }
+CultivationMilestones = { 1e3, 1e4, 1e5, 1e6, 1e7, 1e8, 1e10 }
 Cultivation_colors = { "#FF0000", "#FF9900", "#ffff00", "#00ff00", "#0000ff", "#ff00ff", "#ffffff" }
 Cultivation_tiers = { "Red", "Orange", "Yellow", "Green", "Blue", "Violet", "White" }
 -- these slow down all other meters by xRate -> Higher cultivation = less dmg, less hunger, etc...
@@ -34,10 +34,6 @@ function GetPrevMilestone()
 	end
 
 	return prev
-end
-
-function IsPlayerCultivating()
-	return Addon.cultivationCache and Addon.cultivationCache.active and Addon.playerCache.onVehicle
 end
 
 function GetMilestoneValue(milestone)

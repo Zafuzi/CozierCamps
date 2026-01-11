@@ -22,21 +22,12 @@ Addon = {
 }
 
 -- Debug category to setting mapping (optimization for Debug function)
-DEBUG_SETTINGS = {
-	general = "debug_general",
-	player = "debug_player",
-	hunger = "debug_hunger",
-	thirst = "debug_thirst",
-	cultivation = "debug_cultivation",
-	database = "debug_database",
-	panel = "show_debug_panel"
-}
-
 DEFAULT_SETTINGS = {
 	debug_general = true,
-	show_debug_panel = true,
+	debug_event = false,
+	debug_panel = false,
 	debug_player = true,
-	debug_database = true,
+	debug_database = false,
 	debug_hunger = true,
 	debug_thirst = true,
 	debug_cultivation = true,
@@ -73,7 +64,8 @@ COLORS = {
 	TEMPERATURE = "|cffFFCC55",
 	WARNING = "|cffFF6600",
 	SUCCESS = "|cff00FF00",
-	ERROR = "|cffDD0033"
+	ERROR = "|cffDD0033",
+	TABLE = "|cff999999",
 }
 
 

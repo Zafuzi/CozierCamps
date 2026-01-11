@@ -13,7 +13,6 @@ lib/globals.lua
 lib/utils.lua
 lib/db.lua
 lib/gui.lua
-lib/meter.lua
 # END LIB
 
 # state
@@ -22,10 +21,11 @@ controllers/thirst.lua
 controllers/cultivation.lua
 
 # UI
-views/DebugPanel.lua
 views/HungerMeter.lua
 views/ThirstMeter.lua
 views/CultivationMeter.lua
+views/Meters.lua
+views/DebugPanel.lua
 
 # Keep on bottom
 Core.lua

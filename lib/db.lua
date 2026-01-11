@@ -41,15 +41,20 @@ end
 
 function ResetSettings()
 	Debug("RESETTING ALL SETTINGS")
+	ResetDB()
+	ResetChar()
+end
+
+function ResetDB()
 	for key, value in pairs(DEFAULT_SETTINGS) do
 		Addon.DB[key] = value
 	end
+end
 
+function ResetChar()
 	for key, value in pairs(DEFAULT_CHAR_SETTINGS) do
 		Addon.CharDB[key] = value
 	end
-
-	FireCallbacks("SETTINGS_CHANGED", "ALL", nil)
 end
 
 function GetDefaultSetting(key)
