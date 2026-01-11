@@ -2,6 +2,24 @@
 -- TODO: these need to be split into more files to make globals easier to manage
 -- i.e. _globals/colors.lua, _globals/icons.lua, etc...
 --[[ Addon defaults ]]--
+Addon = {
+	version = "0.0.1",
+	name = "Cultivation",
+
+	isLoaded = false,
+
+	callbacks = {},
+
+	playerCache = {
+		name = "Player",
+		level = 0,
+		health = 0,
+		speed = 0,
+		resting = false,
+		eating = false,
+		activity = "idle"
+	},
+}
 
 -- Debug category to setting mapping (optimization for Debug function)
 DEBUG_SETTINGS = {
@@ -9,7 +27,7 @@ DEBUG_SETTINGS = {
 	hunger = "debug_hunger",
 	thirst = "debug_thirst",
 	database = "debug_database",
-	debug_panel = "show_debug_panel"
+	panel = "show_debug_panel"
 }
 
 DEFAULT_SETTINGS = {
@@ -92,25 +110,6 @@ FONTS = {
 	TwoThousandBold = "Fonts\\2002B.TTF",
 	ExpressWay = "Fonts\\EXPRESSWAY.TTF",
 	NimrodMT = "Fonts\\NIM_____.TTF",
-}
-
-Addon = {
-	version = "0.0.1",
-	name = "Cultivation",
-
-	isLoaded = false,
-
-	callbacks = {},
-
-	playerCache = {
-		name = "Player",
-		level = 0,
-		health = 0,
-		speed = 0,
-		resting = false,
-		eating = false,
-		activity = "idle"
-	},
 }
 
 ICONS = {

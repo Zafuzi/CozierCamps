@@ -1,9 +1,10 @@
 ## Interface: 110207
 ## Title: Cultivation
-## Notes: Manage vitals, stay alive. Version 0.1 - Beta
+## Category: Roleplay
+## Notes: Condense your core, survive the wilds, master arts, reach the peak. 0.0.1 - Alpha
 ## Author: Zafuzi
 ## Version: 0.0.1
-## X-Curse-Project-ID: 1419520
+## X-Curse-Project-ID: 999999
 ## SavedVariables:
 ## SavedVariablesPerCharacter: CultivationDB, CultivationCharDB
 

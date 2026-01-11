@@ -4,6 +4,7 @@ f:RegisterEvent("ADDON_LOADED")
 f:SetScript("OnEvent", function(self, event, arg)
 	if event == "ADDON_LOADED" and arg == Addon.name then
 		Addon.isLoaded = true
+		print(Addon.name .. " is loaded.")
 	end
 end)
 
@@ -49,6 +50,10 @@ SlashCmdList["COZIER"] = function(msg)
 		if settingKey then
 			local isOn = GetSetting(settingKey)
 			SetSetting(settingKey, not isOn)
+
+			if value == "panel" and isOn then
+				ToggleModal(DebugPanel)
+			end
 		else
 			Debug("Debug Setting: " .. value .. " not found")
 		end

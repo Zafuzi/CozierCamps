@@ -4,6 +4,7 @@ f:SetScript("OnEvent", function(self, event, arg)
 	if (event == "ADDON_LOADED" and arg == Addon.name) or event == "SETTINGS_CHANGED" then
 		if not CultivationDB then
 			CultivationDB = {}
+			print("Creating CultivationDB: " .. unpack(DEFAULT_SETTINGS))
 		end
 
 		Addon.DB = CultivationDB
@@ -16,6 +17,7 @@ f:SetScript("OnEvent", function(self, event, arg)
 
 		if not CultivationCharDB then
 			CultivationCharDB = {}
+			print("Creating CultivationCharDB: " .. unpack(DEFAULT_CHAR_SETTINGS))
 		end
 
 		Addon.CharDB = CultivationCharDB
